@@ -24,14 +24,19 @@ public:
     void Stop();
     void Unload();
     void Start(void* parentWindow = nullptr);
+    void MT(void* PW);
     bool IsRunning() const;
 
 private:
 
     bool isInitialized = false;
     HMODULE m_DLL = nullptr;
+
+    std::condition_variable m_CV;
     std::thread m_RuntimeThread;
-    std::atomic<bool> m_Running = false;
+    std::atomic<bool> m_Running{ false };
+    std::atomic<bool> m_ShouldRunTick{ false };
+    std::atomic<bool> m_Initialized{ false };
     std::atomic<bool> m_ShouldClose = false;
     std::mutex m_Mutex;
 
