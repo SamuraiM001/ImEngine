@@ -21,6 +21,7 @@ RUNTIME_API void InitRuntime(void* windowHandle) {
 
     // Initialize new window
     SetTraceLogLevel(LOG_WARNING);  // Reduce log spam
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(600, 600, "Runtime View");
 
     s_Camera.position = { 10.0f, 10.0f, 10.0f };
@@ -34,8 +35,8 @@ RUNTIME_API void InitRuntime(void* windowHandle) {
 }
 
 RUNTIME_API void TickRuntime(float deltaTime) {
-
-    if (IsKeyPressed(KEY_ESCAPE)) {
+     
+    if (IsKeyPressed(KEY_ESCAPE) || WindowShouldClose()) {
         s_RequestingExit = true;
     }
 

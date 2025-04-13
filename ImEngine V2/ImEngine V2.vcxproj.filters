@@ -75,6 +75,9 @@
     <ClInclude Include="ECS.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="SaveManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -108,6 +111,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ECS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SaveManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

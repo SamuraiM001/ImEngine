@@ -1,6 +1,6 @@
 #include "Editor.h"
 #include "ImEngine.h"
-
+#include "ConsoleLog.h"
 
 void ImGuiLayer::OnAttach() {
     rlImGuiSetup(true);
@@ -33,6 +33,7 @@ void ImGuiLayer::OnRender() {
     DrawViewport();
     DrawProjectView();
     DrawHierarchy();
+    DrawLog();
     DrawProperities();
 
 
@@ -190,6 +191,7 @@ void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& 
     ImGui::SetCursorPos(buttonPos);  
 
     if (ImGui::Button("Stop", buttonSize)) {
+        m_Editor->GetRuntimeManager()->Stop();
         std::cout << "Stop clicked!" << std::endl;
     }
 
@@ -205,17 +207,64 @@ void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& 
 }
 
 
-void ImGuiLayer::DrawHierarchy() {
+void ImGuiLayer::DrawHierarchy()
+{
     ImGui::Begin("Hierarchy");
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered())m_Editor->ClearSelections();
-    for (auto& x : m_Editor->GetScene()->GetEntities()) {
-        ImGui::PushID(x.second.get()->GetID());
-        if (ImGui::Button(x.second.get()->m_Name.c_str()))m_Editor->Select(x.second.get());
+
+    // Top margin
+    ImGui::Dummy(ImVec2(0.0f, 10.0f)); // Adds vertical spacing at the top
+
+    // Clear selection if clicking empty space
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
+        m_Editor->ClearSelections();
+
+    auto& entities = m_Editor->GetScene()->GetEntities();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 8)); // Make text vertically centered
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Use larger font (make sure font[0] is large enough)
+
+    for (auto& [id, entity] : entities)
+    {
+        ImGui::PushID(id);
+
+        bool isSelected = entity->isSelected;
+
+        if (isSelected)
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.4f, 0.9f, 0.6f));
+
+        // Start horizontal layout for icon + name
+        ImGui::BeginGroup();
+
+        ImGui::BeginChild("Icon", ImVec2(20, 20), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGui::Dummy(ImVec2(16, 16)); // Placeholder for icon
+        ImGui::EndChild();
+
+        ImGui::SameLine();
+
+        if (ImGui::Selectable(entity->m_Name.c_str(), isSelected, ImGuiSelectableFlags_AllowDoubleClick, ImVec2(0, 24)))
+        {
+            if (ImGui::IsMouseDoubleClicked(0)) {
+                // Optional: Expand
+            }
+            else {
+                m_Editor->Select(entity.get());
+            }
+        }
+
+        ImGui::EndGroup();
+
+        if (isSelected)
+            ImGui::PopStyleColor();
+
         ImGui::PopID();
     }
-    ImGui::End();
 
+    ImGui::PopFont();
+    ImGui::PopStyleVar();
+
+    ImGui::End();
 }
+
 
 void ImGuiLayer::DrawProperities() {
     ImGui::SetNextWindowSize(ImVec2(300, 500), ImGuiCond_FirstUseEver);
@@ -271,9 +320,42 @@ void ImGuiLayer::DrawProperities() {
 }
 
 
-void ImGuiLayer::DrawProjectView()
-{
+void ImGuiLayer::DrawProjectView(){
+
 }
+
+void ImGuiLayer::DrawLog()
+{
+    ImGui::Begin("Developer Console");
+
+    static char inputBuffer[256] = "";
+    const std::string& log = IE::Log::Get().GetBuffer();
+
+    // Console log display
+    ImGui::BeginChild("LogScrollRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    ImGui::TextUnformatted(log.c_str());
+    ImGui::SetScrollHereY(1.0f); // Always scroll to bottom
+    ImGui::EndChild();
+
+    ImGui::PushItemWidth(-1);
+    ImGui::SetNextItemWidth(-1);
+
+    if (ImGui::InputText("##ConsoleInput", inputBuffer, IM_ARRAYSIZE(inputBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+    {
+        std::string command = inputBuffer;
+        if (!command.empty())
+        {
+            IE::Log::Get().ExecuteCommand(command);
+        }
+        ImGui::SetKeyboardFocusHere(-1); // Keep focus on the input box after enter
+        inputBuffer[0] = '\0'; // Clear input
+
+    }
+    ImGui::PopItemWidth();
+
+    ImGui::End();
+}
+
 
 
 

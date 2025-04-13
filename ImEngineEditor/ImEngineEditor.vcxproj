@@ -129,6 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ConsoleLog.cpp" />
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="ImGUILayer.cpp" />
     <ClCompile Include="main.cpp" />
@@ -146,6 +147,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConsoleLog.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="Runtime.h" />
   </ItemGroup>

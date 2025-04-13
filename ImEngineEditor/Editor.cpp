@@ -1,5 +1,6 @@
 ﻿#include "Editor.h"
 #include "ImEngine.h"
+#include "ConsoleLog.h"
 
 #pragma region GameRendering
 
@@ -53,7 +54,10 @@ void GameLayer::OnRender() {
 
 #pragma endregion
 
-void Editor::Initialize() {
+void Editor::Initialize(int argc, char* argv[]) {
+    IE::Log::Get().Hook();
+    m_Core.Initialize(argc, argv);
+
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);  
     InitWindow(800, 600, "Im Engine");
 
@@ -78,6 +82,8 @@ void Editor::Run() {
 
 void Editor::Shutdown() {
     m_RuntimeManager.Unload();
+    IE::Log::Get().Unhook();
+    m_Core.Shutdown();
     CloseWindow();
 }
 

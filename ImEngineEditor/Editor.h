@@ -3,6 +3,7 @@
 #include "ImEngine.h"
 #include "Runtime.h"
 
+
 #include "imgui/imgui.h"
 #include "imgui/rlImGui.h"
 
@@ -33,6 +34,7 @@ public:
     void DrawHierarchy();
     void DrawProperities();
     void DrawProjectView();
+    void DrawLog();
     void DrawViewportButtons(const ImVec2& availableSize, const ImVec2& framebufferSize);
 
 public:
@@ -52,7 +54,7 @@ class Editor : public IE::App
 {
 private:
     RenderTexture framebuffer;
-
+    IE::Core m_Core;
     RuntimeManager m_RuntimeManager;
 
     Camera3D  m_3DCamera = {
@@ -69,7 +71,7 @@ private:
     std::vector <IE::Object*> m_selectedObjects;
 public:
 	Editor() {};
-	void Initialize() override;
+	void Initialize(int argc, char* argv[]) override;
 	void Run() override;
 	void Shutdown()override;
 

@@ -8,7 +8,7 @@
 #include "imgui/rlImGui.h"  
 
 #include <iostream>  
-
+#include <string>
 
 namespace IE{
     enum CameraMode {
@@ -17,8 +17,8 @@ namespace IE{
     };
     class Core{
     public:
-            void Initialize();
+            static std::string m_WorkFolder;
+            void Initialize(int argc, char* argv[]);
             void Shutdown();
-
     };
 }

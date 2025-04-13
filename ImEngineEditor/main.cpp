@@ -5,7 +5,7 @@ int main(int argc, char* argv[]){
 
     Editor Ed = Editor();
 
-    Ed.Initialize();
+    Ed.Initialize(argc,  argv);
     Ed.Run();
     Ed.Shutdown();
 

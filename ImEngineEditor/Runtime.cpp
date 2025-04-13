@@ -5,8 +5,8 @@ RuntimeManager::RuntimeManager() {
 }
 
 RuntimeManager::~RuntimeManager() {
-    Stop();    // ensure we stop thread on destruction
-    Unload();  // free the DLL
+    Stop();    
+    Unload();
 }
 
 void RuntimeManager::Load() {
@@ -53,7 +53,6 @@ void RuntimeManager::Load() {
                         m_ShouldRunTick = false;
                     }
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(16));
             }
 
             lock.lock();

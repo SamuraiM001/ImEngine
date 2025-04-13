@@ -8,7 +8,7 @@ namespace IE {
 	protected:
 		RenderStack m_rStack;
 	public:
-		virtual void Initialize() {};
+		virtual void Initialize(int argc, char* argv[]) {};
 		void PushLayer(std::unique_ptr<RenderLayer> layer) {
 			m_rStack.PushLayer(std::move(layer));
 		}
