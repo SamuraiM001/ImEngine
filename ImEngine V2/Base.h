@@ -9,6 +9,7 @@
 #define IE_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
 #define IE_LOG(x)         std::cout << "IE [LOG]: " << x << "\n"  
+#define IE_LOG_SUCCESS(x) std::cout << "IE [SUCCESS]: " << x << "\n"  
 #define IE_LOG_WARN(x)    std::cout << "IE [WARN]: " << x << "\n"  
 #define IE_LOG_ERROR(x)   std::cerr << "IE [ERROR]: " << x << "\n"  
 

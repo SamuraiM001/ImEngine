@@ -16,7 +16,7 @@ namespace IE {
 
     class Object {
     public:
-        Object(uint32_t id) : m_ID(id) { m_Model = LoadModelFromMesh(GenMeshCube(1,1,1)); }
+        Object(uint32_t id) : m_ID(id) { m_Model = LoadModelFromMesh(GenMeshCube(1, 1, 1)); }
         bool isSelected = false;
 
         void Select() { isSelected = true; };

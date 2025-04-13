@@ -16,8 +16,13 @@ namespace IE{
         TWO_D
     };
     class Core{
+    private:
+        void ParseProjectFile(std::string folder);
     public:
+            static std::string m_ProjectName;
             static std::string m_WorkFolder;
+            static std::string m_ProjectFile;
+            static std::string m_StartScene;
             void Initialize(int argc, char* argv[]);
             void Shutdown();
     };

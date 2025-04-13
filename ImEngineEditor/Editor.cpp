@@ -8,7 +8,7 @@ void GameLayer::OnRender() {
     RenderTexture* framebuffer = m_Editor->GetFrameBuffer();
     if (!framebuffer) return;
 
-    BeginTextureMode(*framebuffer);  // Render into the framebuffer
+    BeginTextureMode(*framebuffer);  
 
     ClearBackground(BLACK);
 
@@ -55,13 +55,18 @@ void GameLayer::OnRender() {
 #pragma endregion
 
 void Editor::Initialize(int argc, char* argv[]) {
+    //Hooking the log To Cout
     IE::Log::Get().Hook();
+    //Initializing Core
     m_Core.Initialize(argc, argv);
 
+    //Initializing Raylib window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);  
     InitWindow(800, 600, "Im Engine");
+    MaximizeWindow();
 
-
+    IE::SaveManager::LoadSceneFromAFile(GetScene(),IE::Core::m_WorkFolder + IE::Core::m_StartScene);
+    //Pushing RenderLayers
     PushLayer(std::make_unique<GameLayer>(this));
     PushOverlay(std::make_unique<ImGuiLayer>(this));
 }

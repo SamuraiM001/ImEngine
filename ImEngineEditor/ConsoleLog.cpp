@@ -29,7 +29,10 @@ namespace IE {
             std::cout << "Hello from IE Engine!\n";
             });
 
-        m_Original = std::cout.rdbuf(this);
+        if (!m_Original) {
+            m_Original = std::cout.rdbuf(this);
+            std::cerr.rdbuf(this); 
+        }
     }
 
     void Log::RegisterCommand(const std::string& name, const std::string& description, CommandFn fn) {

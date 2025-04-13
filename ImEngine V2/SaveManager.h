@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 namespace IE {
 	class Scene;
@@ -6,7 +7,7 @@ namespace IE {
 	class SaveManager{
 	public:
 		 static void SaveSceneToAFile(Scene* Scene);
-		 static void LoadSceneFromAFile(Scene* Scene);
+		 static void LoadSceneFromAFile(Scene* Scene,std::string FilePath);
 	};
 }
 

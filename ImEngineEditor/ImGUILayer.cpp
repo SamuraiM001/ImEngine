@@ -1,10 +1,90 @@
 #include "Editor.h"
 #include "ImEngine.h"
 #include "ConsoleLog.h"
+void SetupImGuiStyle()
+{
+    ImGuiStyle& mStyle = ImGui::GetStyle();
+
+    mStyle.WindowMinSize = ImVec2(160, 20);
+    mStyle.FramePadding = ImVec2(6, 4);
+    mStyle.ItemSpacing = ImVec2(8, 6);
+    mStyle.ItemInnerSpacing = ImVec2(6, 4);
+    mStyle.Alpha = 1.0f;
+    mStyle.WindowRounding = 8.0f;        // More round windows
+    mStyle.FrameRounding = 6.0f;         // More round frames (buttons, inputs)
+    mStyle.IndentSpacing = 10.0f;
+    mStyle.ColumnsMinSpacing = 8.0f;
+    mStyle.GrabMinSize = 14.0f;
+    mStyle.GrabRounding = 8.0f;          // Rounded sliders
+    mStyle.ScrollbarSize = 14.0f;
+    mStyle.ScrollbarRounding = 9.0f;
+    mStyle.TabRounding = 6.0f;
+
+    ImGuiStyle& style = mStyle;
+    ImVec4 red = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+    ImVec4 redHover = ImVec4(0.92f, 0.18f, 0.29f, 0.85f);
+    ImVec4 redLight = ImVec4(0.92f, 0.18f, 0.29f, 0.43f);
+    ImVec4 bgDark = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+    ImVec4 bgLight = ImVec4(0.18f, 0.18f, 0.20f, 1.00f);
+
+    style.Colors[ImGuiCol_Text] = ImVec4(0.95f, 0.95f, 0.95f, 0.95f);
+    style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.6f, 0.6f, 0.6f, 1.00f);
+    style.Colors[ImGuiCol_WindowBg] = bgDark;
+    style.Colors[ImGuiCol_ChildBg] = bgDark;
+    style.Colors[ImGuiCol_PopupBg] = bgLight;
+
+    style.Colors[ImGuiCol_Border] = ImVec4(0.25f, 0.25f, 0.25f, 0.50f);
+    style.Colors[ImGuiCol_FrameBg] = bgLight;
+    style.Colors[ImGuiCol_FrameBgHovered] = redHover;
+    style.Colors[ImGuiCol_FrameBgActive] = red;
+
+    style.Colors[ImGuiCol_TitleBg] = bgLight;
+    style.Colors[ImGuiCol_TitleBgActive] = red;
+    style.Colors[ImGuiCol_TitleBgCollapsed] = bgLight;
+
+    style.Colors[ImGuiCol_MenuBarBg] = bgLight;
+    style.Colors[ImGuiCol_ScrollbarBg] = bgLight;
+    style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+    style.Colors[ImGuiCol_ScrollbarGrabHovered] = redHover;
+    style.Colors[ImGuiCol_ScrollbarGrabActive] = red;
+
+    style.Colors[ImGuiCol_CheckMark] = red;
+    style.Colors[ImGuiCol_SliderGrab] = redLight;
+    style.Colors[ImGuiCol_SliderGrabActive] = red;
+
+    style.Colors[ImGuiCol_Button] = redLight;
+    style.Colors[ImGuiCol_ButtonHovered] = redHover;
+    style.Colors[ImGuiCol_ButtonActive] = red;
+
+    style.Colors[ImGuiCol_Header] = redLight;
+    style.Colors[ImGuiCol_HeaderHovered] = redHover;
+    style.Colors[ImGuiCol_HeaderActive] = red;
+
+    style.Colors[ImGuiCol_Separator] = ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+    style.Colors[ImGuiCol_SeparatorHovered] = redHover;
+    style.Colors[ImGuiCol_SeparatorActive] = red;
+
+    style.Colors[ImGuiCol_ResizeGrip] = redLight;
+    style.Colors[ImGuiCol_ResizeGripHovered] = redHover;
+    style.Colors[ImGuiCol_ResizeGripActive] = red;
+
+    style.Colors[ImGuiCol_Tab] = redLight;
+    style.Colors[ImGuiCol_TabHovered] = redHover;
+    style.Colors[ImGuiCol_TabActive] = red;
+    style.Colors[ImGuiCol_TabUnfocused] = bgLight;
+    style.Colors[ImGuiCol_TabUnfocusedActive] = redLight;
+
+    style.Colors[ImGuiCol_PlotLines] = redLight;
+    style.Colors[ImGuiCol_PlotLinesHovered] = red;
+    style.Colors[ImGuiCol_PlotHistogram] = redLight;
+    style.Colors[ImGuiCol_PlotHistogramHovered] = red;
+
+    style.Colors[ImGuiCol_TextSelectedBg] = redLight;
+}
 
 void ImGuiLayer::OnAttach() {
     rlImGuiSetup(true);
-
+    SetupImGuiStyle();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
@@ -52,10 +132,9 @@ void ImGuiLayer::DrawMainMenuBar() {
             if (ImGui::MenuItem("Open")) {
             }
             if (ImGui::MenuItem("Save")) {
+                IE::SaveManager::SaveSceneToAFile(m_Editor->GetScene());
             }
-            if (ImGui::MenuItem("Exit")) {
-                CloseWindow();  
-            }
+
             ImGui::EndMenu(); 
         }
 
@@ -108,12 +187,14 @@ void ImGuiLayer::DrawMainDockspace() {
 }
 
 void ImGuiLayer::DrawViewport() {
-    ImGui::Begin("Viewport");
+    std::string name = m_Editor->GetScene()->GetName()!="" ? m_Editor->GetScene()->GetName() : "Viewport";
+    ImGui::Begin(name.c_str());
 
     // Handle mouse lock for camera control
     if (ImGui::IsWindowHovered() && IsMouseButtonPressed(MOUSE_RIGHT_BUTTON) && !isMouseLocked) {
         DisableCursor();
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse; 
+        ImGui::SetWindowFocus();
         isMouseLocked = true;
     }
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered())m_Editor->ClearSelections();
@@ -211,17 +292,15 @@ void ImGuiLayer::DrawHierarchy()
 {
     ImGui::Begin("Hierarchy");
 
-    // Top margin
-    ImGui::Dummy(ImVec2(0.0f, 10.0f)); // Adds vertical spacing at the top
+    ImGui::Dummy(ImVec2(0.0f, 10.0f)); 
 
-    // Clear selection if clicking empty space
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
         m_Editor->ClearSelections();
 
     auto& entities = m_Editor->GetScene()->GetEntities();
 
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 8)); // Make text vertically centered
-    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Use larger font (make sure font[0] is large enough)
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 8)); 
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); 
 
     for (auto& [id, entity] : entities)
     {
@@ -232,11 +311,10 @@ void ImGuiLayer::DrawHierarchy()
         if (isSelected)
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.4f, 0.9f, 0.6f));
 
-        // Start horizontal layout for icon + name
         ImGui::BeginGroup();
 
         ImGui::BeginChild("Icon", ImVec2(20, 20), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        ImGui::Dummy(ImVec2(16, 16)); // Placeholder for icon
+        ImGui::Dummy(ImVec2(16, 16)); 
         ImGui::EndChild();
 
         ImGui::SameLine();
@@ -244,7 +322,7 @@ void ImGuiLayer::DrawHierarchy()
         if (ImGui::Selectable(entity->m_Name.c_str(), isSelected, ImGuiSelectableFlags_AllowDoubleClick, ImVec2(0, 24)))
         {
             if (ImGui::IsMouseDoubleClicked(0)) {
-                // Optional: Expand
+
             }
             else {
                 m_Editor->Select(entity.get());
@@ -269,11 +347,10 @@ void ImGuiLayer::DrawHierarchy()
 void ImGuiLayer::DrawProperities() {
     ImGui::SetNextWindowSize(ImVec2(300, 500), ImGuiCond_FirstUseEver);
     ImGui::Begin("Properties");
-
+    ImGui::Dummy({ 20,20 });
     if (!m_Editor->GetSelectedObject().empty()) {
         IE::Object* obj = m_Editor->GetSelectedObject()[0];
         if (obj) {
-            // Editable Name
             char nameBuffer[128] = {};
             strncpy_s(nameBuffer, sizeof(nameBuffer), obj->m_Name.c_str(), _TRUNCATE);
 
@@ -284,8 +361,7 @@ void ImGuiLayer::DrawProperities() {
             ImGui::Separator();
             ImGui::Text("Transform");
 
-            // Position / Rotation / Scale
-            ImGui::DragFloat3("Position", &obj->m_Position.x, 0.1f);
+            ImGui::DragFloat3("Position",    &obj->m_Position.x, 0.1f);
             ImGui::DragFloat3("Rotation", &obj->m_Rotation.x, 0.1f);
             ImGui::DragFloat3("Scale", &obj->m_Scale.x, 0.1f);
 
@@ -331,25 +407,39 @@ void ImGuiLayer::DrawLog()
     static char inputBuffer[256] = "";
     const std::string& log = IE::Log::Get().GetBuffer();
 
-    // Console log display
     ImGui::BeginChild("LogScrollRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    ImGui::TextUnformatted(log.c_str());
-    ImGui::SetScrollHereY(1.0f); // Always scroll to bottom
+
+    std::istringstream stream(log);
+    std::string line;
+
+    while (std::getline(stream, line)) {
+        if (line.find("[ERROR]") != std::string::npos)
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 80, 80, 255)); // Red
+        else if (line.find("[WARN]") != std::string::npos)
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 200, 0, 255)); // Yellow
+        else if (line.find("[SUCCESS]") != std::string::npos)
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(100, 255, 100, 255)); // Green
+
+        ImGui::TextUnformatted(line.c_str());
+
+        if (line.find("[ERROR]") != std::string::npos ||
+            line.find("[WARN]") != std::string::npos ||
+            line.find("[SUCCESS]") != std::string::npos)
+            ImGui::PopStyleColor();
+    }
+
+    ImGui::SetScrollHereY(1.0f);
     ImGui::EndChild();
 
     ImGui::PushItemWidth(-1);
-    ImGui::SetNextItemWidth(-1);
-
     if (ImGui::InputText("##ConsoleInput", inputBuffer, IM_ARRAYSIZE(inputBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
     {
         std::string command = inputBuffer;
-        if (!command.empty())
-        {
+        if (!command.empty()) {
             IE::Log::Get().ExecuteCommand(command);
+            ImGui::SetKeyboardFocusHere(-1);
         }
-        ImGui::SetKeyboardFocusHere(-1); // Keep focus on the input box after enter
-        inputBuffer[0] = '\0'; // Clear input
-
+        inputBuffer[0] = '\0';
     }
     ImGui::PopItemWidth();
 

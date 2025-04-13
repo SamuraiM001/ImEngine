@@ -2,6 +2,9 @@
 
 using namespace IE;
 
+Scene::Scene() {
+}
+
 
 Object& Scene::CreateEntity() {
     uint32_t id = m_NextEntityID++;

@@ -39,7 +39,7 @@ void RuntimeManager::Load() {
             if (!m_Running) break;
 
             if (!m_Initialized && m_Init) {
-                m_Init(nullptr); // you can store window handle and pass it here
+                m_Init(nullptr); 
                 m_Initialized = true;
             }
 
