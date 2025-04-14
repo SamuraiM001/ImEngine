@@ -18,6 +18,7 @@ public:
         IE_ASSERT(editor != nullptr, "Editor pointer cannot be null!");
     }
     void OnRender()override;
+    void OnUpdate()override;
 };
 
 

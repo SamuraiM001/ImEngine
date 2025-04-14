@@ -3,54 +3,80 @@
 #include <memory>
 #include <typeindex>
 #include <string>
-#include <raylib.h>
+#include <raylib.h> 
 
 namespace IE {
 
+    class Object;
+
     class Component {
+    protected:
+        Object* m_Owner = nullptr;
+        std::string m_Name;
     public:
         virtual ~Component() = default;
-        virtual void Start() {};
-        virtual void Update() {};
+        virtual void Start() {}
+        virtual void Update() {}
+        virtual void Render() {}
+        virtual void GuiRender() {};
+
+        static std::string StaticName() { return "RenderComponent"; }
+       
+        void SetOwner(Object* owner) { m_Owner = owner; }
+        Object* GetOwner() const { return m_Owner; }
+        std::string GetName() const { return m_Name; }
     };
 
     class Object {
     public:
-        Object(uint32_t id) : m_ID(id) { m_Model = LoadModelFromMesh(GenMeshCube(1, 1, 1)); }
-        bool isSelected = false;
+        Object(uint32_t id) : m_ID(id) {}
 
-        void Select() { isSelected = true; };
-        void UnSelect() { isSelected = false;};
-
-        uint32_t GetID() const { return m_ID; }
-
+        // Template to add a component by constructing it with given arguments.
         template<typename T, typename... Args>
         T* AddComponent(Args&&... args);
 
+        // Template to retrieve a component by type.
         template<typename T>
         T* GetComponent();
 
+        // Check if a component of a given type is attached.
+        bool HasComponent(const std::type_info& type) const {
+            return m_Components.find(type) != m_Components.end();
+        }
 
-        Model* GetModel() { return &m_Model; };
-        std::unordered_map<std::type_index, std::unique_ptr<Component>>& GetAllComponents();
+        std::unordered_map<std::type_index, std::unique_ptr<Component>>& GetAllComponents() {
+            return m_Components;
+        }
 
-    public:
-        //setters
-        void SetTransform(Matrix Transform);
-        void SetPositon(Vector3 Positon);
-        void SetScale(Vector3 Scale);
+        void Update(); 
+        
+
+
+        void Render();
+
+        // Setters 
+        void SetPosition(Vector3 position) { m_Position = position; }
+        void SetScale(Vector3 scale) { m_Scale = scale; }
+
+        uint32_t GetID() const { return m_ID; }
+        bool isSelected = false;
+        void Select() { isSelected = true; }
+        void UnSelect() { isSelected = false; }
 
     public:
         std::string m_Name;
-        Vector3 m_Position = { 0,0,0 };
-        Vector3 m_Rotation = { 0,0,0 };
-        Vector3 m_Scale = { 1,1,1 };
+        Vector3 m_Position = { 0, 0, 0 };
+        Vector3 m_Rotation = { 0, 0, 0 };
+        Vector3 m_Scale = { 1, 1, 1 };
 
     private:
         uint32_t m_ID;
         std::unordered_map<std::type_index, std::unique_ptr<Component>> m_Components;
-        Mesh m_Mesh;
-        Model m_Model;
     };
+
+
+    // Template to add a component by constructing it with given arguments.
+
+
 
 }

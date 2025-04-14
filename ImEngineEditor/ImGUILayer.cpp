@@ -325,6 +325,7 @@ void ImGuiLayer::DrawHierarchy()
 
             }
             else {
+                m_Editor->ClearSelections();
                 m_Editor->Select(entity.get());
             }
         }
@@ -382,13 +383,28 @@ void ImGuiLayer::DrawProperities() {
                 ImGui::OpenPopup("AddComponentPopup");
             }
 
+            // 'obj' is a pointer to an IE::Object
             if (ImGui::BeginPopup("AddComponentPopup")) {
-                if (ImGui::MenuItem("Empty Component")) {
-                    // Add a basic component here
-                    // obj->AddComponent<YourComponent>();
+                const auto& allComponents = IE::ComponentRegistry::Get().GetAll();
+
+                for (const auto& [name, getType] : allComponents) {
+                    std::type_index type = getType();
+
+                    if (ImGui::MenuItem(name.c_str())) {
+                        std::unique_ptr<IE::Component> comp = IE::ComponentRegistry::Get().CreateComponent(name);
+                        if (comp) {
+                            comp->SetOwner(obj);
+                            obj->GetAllComponents()[type] = std::move(comp);
+                        }
+                    }
+
                 }
                 ImGui::EndPopup();
             }
+
+
+
+
         }
     }
 

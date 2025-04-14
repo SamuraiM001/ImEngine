@@ -3,35 +3,38 @@
 using namespace IE;
 
 template<typename T, typename ...Args>
-T* Object::AddComponent(Args && ...args) {
-    static_assert(std::is_base_of<Component, T>::value, "T must be a Component");
-    auto comp = std::make_unique<T>(std::forward<Args>(args)...);
-    T* ptr = comp.get();
+inline T* Object::AddComponent(Args && ...args) {
+    std::unique_ptr<T> comp = std::make_unique<T>(std::forward<Args>(args)...);
+    comp->SetOwner(this);
+    T* rawPtr = comp.get();
     m_Components[typeid(T)] = std::move(comp);
-    return ptr;
+    return rawPtr;
 }
 
+
 template<typename T>
-T* Object::GetComponent(){
+inline T* IE::Object::GetComponent() {
     auto it = m_Components.find(typeid(T));
     if (it != m_Components.end()) {
-        return static_cast<T*>(it->second.get());
+        return dynamic_cast<T*>(it->second.get());
     }
     return nullptr;
 }
 
-void Object::SetTransform(Matrix Transform) {
-    m_Model.transform = Transform;
+
+
+
+
+
+
+void Object::Update() {
+    for (auto& [type, obj] : m_Components) {
+        obj->Update();
+    }
 }
 
-void IE::Object::SetPositon(Vector3 Positon){
-    m_Position = Positon;
-}
-
-void IE::Object::SetScale(Vector3 Scale){
-    m_Scale = Scale;
-}
-
-std::unordered_map<std::type_index, std::unique_ptr<Component>>& Object::GetAllComponents() {
-    return m_Components;
+void Object::Render(){
+    for (auto& [type, obj] : m_Components) {
+        obj->Render();
+    }
 }

@@ -18,30 +18,9 @@ void GameLayer::OnRender() {
         BeginMode2D(*m_Editor->Get2DCamera());
 
     DrawGrid(20, 1.0f);
-
     for (auto& [type, obj] : m_Editor->GetScene()->GetEntities()) {
-        if (!obj->GetModel()) continue;
-        Model model = *obj->GetModel();
-
-        // Compute local SRT (Scale → Rotate → Translate)
-        Matrix transform = MatrixMultiply(
-            MatrixMultiply(
-                MatrixScale(obj->m_Scale.x, obj->m_Scale.y, obj->m_Scale.z),
-                MatrixRotateXYZ({ obj->m_Rotation.x * DEG2RAD,
-                                 obj->m_Rotation.y * DEG2RAD,
-                                 obj->m_Rotation.z * DEG2RAD })
-            ),
-            MatrixTranslate(obj->m_Position.x, obj->m_Position.y, obj->m_Position.z)
-        );
-
-
-        obj->SetTransform(transform);
-        DrawModel(model, { 0, 0, 0 }, 1.0f, WHITE);
-        if (obj->isSelected)
-            DrawModelWires(model, { 0, 0, 0 }, 1.0f, BLUE);
-
+        obj->Render();
     }
-
     if (m_Editor->GetCameraMode() == IE::CameraMode::THREE_D)
         EndMode3D();
     if (m_Editor->GetCameraMode() == IE::CameraMode::TWO_D)
@@ -50,7 +29,12 @@ void GameLayer::OnRender() {
     EndTextureMode();  // Done writing to framebuffer
 }
 
+void GameLayer::OnUpdate() {
+    for (auto& [type, obj] : m_Editor->GetScene()->GetEntities()) {
+        obj->Update();
+    }
 
+}
 
 #pragma endregion
 
@@ -58,6 +42,7 @@ void Editor::Initialize(int argc, char* argv[]) {
     //Hooking the log To Cout
     IE::Log::Get().Hook();
     //Initializing Core
+    IE::ComponentRegistry::RegisterComponents();
     m_Core.Initialize(argc, argv);
 
     //Initializing Raylib window

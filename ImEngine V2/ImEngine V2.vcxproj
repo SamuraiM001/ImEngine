@@ -143,6 +143,8 @@
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Base.h" />
+    <ClInclude Include="ComponentRegistry.h" />
+    <ClInclude Include="Components.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="ECS.h" />
     <ClInclude Include="ImEngine.h" />
@@ -161,6 +163,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="ComponentRegistry.cpp" />
+    <ClCompile Include="Components.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="ECS.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />

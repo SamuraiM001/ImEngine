@@ -22,6 +22,9 @@
     <Filter Include="Header Files\Components">
       <UniqueIdentifier>{1234a032-bfef-4031-b706-ca940afacf8b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Utility">
+      <UniqueIdentifier>{636dc41d-e14f-4b14-b85b-2dc6279fe369}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -75,8 +78,14 @@
     <ClInclude Include="ECS.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Components.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentRegistry.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
     <ClInclude Include="SaveManager.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -114,6 +123,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SaveManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentRegistry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Components.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
