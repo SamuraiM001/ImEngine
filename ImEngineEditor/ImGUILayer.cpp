@@ -265,7 +265,7 @@ void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& 
 
     if (ImGui::Button("Play", buttonSize)) {
         m_Editor->GetRuntimeManager()->Start(this);
-        std::cout << "Play clicked!" << std::endl;
+        IE_LOG("Runtime Started");
     }
 
     buttonPos.x += buttonSize.x + margin; 
@@ -273,7 +273,7 @@ void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& 
 
     if (ImGui::Button("Stop", buttonSize)) {
         m_Editor->GetRuntimeManager()->Stop();
-        std::cout << "Stop clicked!" << std::endl;
+        IE_LOG("Runtime Stopped From Engine");
     }
 
     buttonPos.x += buttonSize.x + margin;
@@ -374,8 +374,9 @@ void ImGuiLayer::DrawProperities() {
                 std::string typeName = typeId.name();
 
                 if (ImGui::TreeNode(typeName.c_str())) {
-                    ImGui::Text("Component UI coming soon...");
+                    component->GuiRender();
                     ImGui::TreePop();
+
                 }
             }
 

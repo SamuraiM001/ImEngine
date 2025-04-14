@@ -10,7 +10,7 @@ namespace IE {
     class Object;
 
     class Component {
-    protected:
+    private:
         Object* m_Owner = nullptr;
         std::string m_Name;
     public:

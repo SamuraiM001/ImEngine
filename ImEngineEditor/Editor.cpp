@@ -41,8 +41,9 @@ void GameLayer::OnUpdate() {
 void Editor::Initialize(int argc, char* argv[]) {
     //Hooking the log To Cout
     IE::Log::Get().Hook();
-    //Initializing Core
+    //Registering CurrentComponents
     IE::ComponentRegistry::RegisterComponents();
+    //Initializing Core
     m_Core.Initialize(argc, argv);
 
     //Initializing Raylib window
