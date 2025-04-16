@@ -1,6 +1,7 @@
 ﻿#include "Editor.h"
 #include "ImEngine.h"
 #include "ConsoleLog.h"
+#include "ResourceManager.h"
 
 #pragma region GameRendering
 
@@ -33,23 +34,23 @@ void GameLayer::OnUpdate() {
     for (auto& [type, obj] : m_Editor->GetScene()->GetEntities()) {
         obj->Update();
     }
-
 }
 
 #pragma endregion
 
 void Editor::Initialize(int argc, char* argv[]) {
-    //Hooking the log To Cout
     IE::Log::Get().Hook();
     //Registering CurrentComponents
     IE::ComponentRegistry::RegisterComponents();
     //Initializing Core
     m_Core.Initialize(argc, argv);
 
-    //Initializing Raylib window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);  
     InitWindow(800, 600, "Im Engine");
     MaximizeWindow();
+    Image icon = LoadImage("textures/Logo.png"); // Must be a square image (e.g., 64x64)
+    SetWindowIcon(icon);
+    UnloadImage(icon);
 
     IE::SaveManager::LoadSceneFromAFile(GetScene(),IE::Core::m_WorkFolder + IE::Core::m_StartScene);
     //Pushing RenderLayers

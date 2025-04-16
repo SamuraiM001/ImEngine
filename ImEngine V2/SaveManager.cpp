@@ -61,11 +61,11 @@ void SaveManager::LoadSceneFromAFile(Scene* scene, std::string filePath) {
         IE_LOG_ERROR("Failed to load scene from file: " + filePath);
         return;
     }
-
+    scene->Clear();
+    
     std::string line;
     Object* currentEntity = nullptr;
     scene->SetFilePath(filePath);
-
     while (std::getline(in, line)) {
         std::istringstream iss(line);
         std::string token;

@@ -24,6 +24,7 @@ namespace IE {
         std::string& GetName() { return m_Name; }
         void SetName(std::string Name) { m_Name = Name; }
 
+        void Clear() { m_Entities.clear(); m_Name = ""; m_FilePath = ""; m_NextEntityID = 1; };
     private:
         std::string m_FilePath;
         std::string m_Name;

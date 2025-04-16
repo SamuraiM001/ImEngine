@@ -1,4 +1,6 @@
 #pragma once
+#include <iostream>  
+
 
 #ifdef _DEBUG
 	#define IE_DEBUGBREAK() __debugbreak()
@@ -12,7 +14,9 @@
 #define IE_LOG_SUCCESS(x) std::cout << "IE [SUCCESS]: " << x << "\n"  
 #define IE_LOG_WARN(x)    std::cout << "IE [WARN]: " << x << "\n"  
 #define IE_LOG_ERROR(x)   std::cerr << "IE [ERROR]: " << x << "\n"  
+#define IE_ASSERT(x, ...) 
 
+#ifdef _DEBUG
 #define IE_ASSERT(x, ...) { \
         if (!(x)) { \
             std::cerr << "Assertion failed: " << #x << "\n"; \
@@ -23,3 +27,4 @@
             IE_DEBUGBREAK(); \
         } \
     }
+#endif

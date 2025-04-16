@@ -19,7 +19,6 @@ RUNTIME_API void InitRuntime(void* windowHandle) {
         return;
     }
 
-    // Initialize new window
     SetTraceLogLevel(LOG_WARNING);  // Reduce log spam
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(600, 600, "Runtime View");

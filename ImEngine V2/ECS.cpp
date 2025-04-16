@@ -22,11 +22,6 @@ inline T* IE::Object::GetComponent() {
 }
 
 
-
-
-
-
-
 void Object::Update() {
     for (auto& [type, obj] : m_Components) {
         obj->Update();

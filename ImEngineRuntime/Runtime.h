@@ -5,6 +5,7 @@
 #else
 #define RUNTIME_API __declspec(dllimport)
 #endif
+#include "ImEngine.h"
 
 extern "C" {
     RUNTIME_API bool IsRuntimeRequestingExit();

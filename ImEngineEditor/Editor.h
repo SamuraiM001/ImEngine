@@ -2,6 +2,7 @@
 
 #include "ImEngine.h"
 #include "Runtime.h"
+#include "ResourceManager.h"
 
 
 #include "imgui/imgui.h"
@@ -44,8 +45,8 @@ public:
     void OnRender() override;
     void OnAttach() override;
     void OnUpdate() override;
-
 private:
+    ResourceManager m_ResourceManager;
     Editor* m_Editor; 
 
 };
