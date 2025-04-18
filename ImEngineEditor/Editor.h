@@ -10,6 +10,7 @@
 
 #include "raylib.h"
 
+
 class Editor;
 
 class GameLayer :public IE::RenderLayer {
@@ -29,6 +30,7 @@ public:
     ImGuiLayer(Editor* editor) : m_Editor(editor) {
         IE_ASSERT(editor != nullptr, "Editor pointer cannot be null!");
     }
+    static void SetupImGuiStyle();
     bool isMouseLocked = false;
     void DrawMainMenuBar();
     void DrawMainDockspace();

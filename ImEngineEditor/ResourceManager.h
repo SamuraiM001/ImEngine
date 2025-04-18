@@ -17,10 +17,12 @@ public:
     };
 
 
-    static std::string OpenDirectory();
 
 
-    void LoadDirectory(const std::string directory);
+     static std::string OpenFile(const std::string& fType);
+     static std::string OpenFolder();
+
+     void LoadDirectory(const std::string directory);
     void LoadDir(const std::string directory);
     const std::vector<ResourceEntry>& GetDirectory() const;
     std::string GetCurrentPath();

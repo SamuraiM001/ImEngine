@@ -3,11 +3,13 @@
 #include "ConsoleLog.h"
 #include "ResourceManager.h"
 #include "Profiler.h"
-
+#include "Constants.h"
 
 #pragma region GameRendering
 
 void GameLayer::OnRender() {
+
+
     Profiler::Get().Begin("Game Layer Render");
     RenderTexture* framebuffer = m_Editor->GetFrameBuffer();
     if (!framebuffer) return;
@@ -55,14 +57,13 @@ void Editor::Initialize(int argc, char* argv[]) {
     
     //Initializing Core
     m_Core.Initialize(argc, argv);
-
     //Initializing Window
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);  
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT);  
     InitWindow(800, 600, "Im Engine");
     MaximizeWindow();
     
     //Loading the icon
-    Image icon = LoadImage("textures/Logo.png"); // Must be a square image (e.g., 64x64)
+    Image icon = LoadImage("textures/Logo.png");
     SetWindowIcon(icon);
     UnloadImage(icon);
 
@@ -77,12 +78,10 @@ void Editor::Initialize(int argc, char* argv[]) {
 void Editor::Run() {
     while (!WindowShouldClose()) {
         Profiler::Get().BeginFrame();
-
         BeginDrawing();
 
         m_rStack.Update();
         m_rStack.Render();
-
 
         EndDrawing();
     }
@@ -102,9 +101,9 @@ void Editor::HandleCameraMovementInput()
 
         UpdateCameraPro(&m_3DCamera,
             Vector3({
-                 ((IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) * 0.1f - (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) * 0.1f)*.1f,
-                 ((IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) * 0.1f - (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) * 0.1f)*.1f,
-                 ((IsKeyDown(KEY_E) || IsKeyDown(KEY_SPACE)) * 0.1f - (IsKeyDown(KEY_Q) || IsKeyDown(KEY_LEFT_CONTROL)) * 0.1f)*.1f,
+                 ((IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) * 0.1f - (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) * 0.1f),
+                 ((IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) * 0.1f - (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) * 0.1f),
+                 ((IsKeyDown(KEY_E) || IsKeyDown(KEY_SPACE)) * 0.1f - (IsKeyDown(KEY_Q) || IsKeyDown(KEY_LEFT_CONTROL)) * 0.1f),
                 }),
                 Vector3({
                     GetMouseDelta().x * 0.05f,

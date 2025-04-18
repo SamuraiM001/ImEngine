@@ -3,18 +3,21 @@
 #include "ConsoleLog.h"
 #include "ImEngine.h"
 #include "Profiler.h"
-#include "math.h"
+#include "Constants.h"
 
-void SetupImGuiStyle(){
+void ImGuiLayer::SetupImGuiStyle(){
 
     ImGuiStyle& style = ImGui::GetStyle();
     ImGuiIO& io = ImGui::GetIO();
-    ImFont* font = io.Fonts->AddFontFromFileTTF("resources/mainfont.ttf", 18);
 
- 
-    if (font) {
-        io.FontDefault = font;
-    }
+    ImFont* font = io.Fonts->AddFontFromMemoryTTF(
+        (void*)mainfont_ttf,       
+        mainfont_ttf_len,          
+        18.0f                      
+    ); 
+    ImGui::GetIO().IniFilename = nullptr;
+    ImGui::GetIO().IniFilename = (IE::Core::m_WorkFolder.c_str()) + (char)"/imgui.ini";  // Set to your project folder
+    if (font)io.FontDefault = font;
 
     rlImGuiReloadFonts();
 
@@ -154,6 +157,7 @@ void ImGuiLayer::OnRender() {
 
 #pragma region ImGui Windows
 
+
 void ImGuiLayer::DrawMainMenuBar() {
     if (ImGui::BeginMainMenuBar()) {
         // --- File Menu ---
@@ -162,7 +166,7 @@ void ImGuiLayer::DrawMainMenuBar() {
             }
             if (ImGui::MenuItem("Open")) {
                 IE::SaveManager::SaveSceneToAFile(m_Editor->GetScene());
-                std::string selectedFilePath = ResourceManager::OpenDirectory();
+                std::string selectedFilePath = ResourceManager::OpenFile("imscene");
                 if (!selectedFilePath.empty()) {
                     m_Editor->ClearSelections();
                     IE::SaveManager::LoadSceneFromAFile(m_Editor->GetScene(),selectedFilePath);

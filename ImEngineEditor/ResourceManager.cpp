@@ -2,28 +2,76 @@
 #include "Base.h"
 #include <windows.h>
 #include <filesystem>
+#include <shobjidl_core.h> // Just part of windows.h in modern toolsets
 
 
-
-std::string ResourceManager::OpenDirectory()
+std::string ResourceManager::OpenFile(const std::string& fType)
 {
     OPENFILENAMEA ofn;
     CHAR szFile[MAX_PATH] = { 0 };
+
+    // Build proper double-null-terminated filter string
+    std::string filterDesc = fType + " Files (*." + fType + ")";
+    std::string filterPattern = "*." + fType;
+
+    std::vector<char> filter;
+    filter.insert(filter.end(), filterDesc.begin(), filterDesc.end());
+    filter.push_back('\0');
+    filter.insert(filter.end(), filterPattern.begin(), filterPattern.end());
+    filter.push_back('\0'); 
 
     ZeroMemory(&ofn, sizeof(ofn));
     ofn.lStructSize = sizeof(ofn);
     ofn.lpstrFile = szFile;
     ofn.nMaxFile = MAX_PATH;
-    ofn.lpstrTitle = "Select a folder (click on a file inside)";
+    ofn.lpstrTitle =   "Select a File";
+    ofn.lpstrFilter = filter.data();
+    ofn.nFilterIndex = 0;
     ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
 
     if (GetOpenFileNameA(&ofn))
     {
-        std::string fullPath = ofn.lpstrFile;
-        return fullPath;
+        return ofn.lpstrFile;
     }
 
-    return ""; 
+    return "";
+}
+
+
+
+std::string ResourceManager::OpenFolder() {
+    std::string result;
+
+    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+    if (SUCCEEDED(hr)) {
+        IFileDialog* pFileDialog = nullptr;
+        hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL, IID_PPV_ARGS(&pFileDialog));
+
+        if (SUCCEEDED(hr)) {
+            DWORD dwOptions;
+            pFileDialog->GetOptions(&dwOptions);
+            pFileDialog->SetOptions(dwOptions | FOS_PICKFOLDERS);
+
+            hr = pFileDialog->Show(NULL);
+            if (SUCCEEDED(hr)) {
+                IShellItem* pItem = nullptr;
+                if (SUCCEEDED(pFileDialog->GetResult(&pItem))) {
+                    PWSTR pszFilePath = nullptr;
+                    if (SUCCEEDED(pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath))) {
+                        char path[MAX_PATH];
+                        wcstombs(path, pszFilePath, MAX_PATH);
+                        result = path;
+                        CoTaskMemFree(pszFilePath);
+                    }
+                    pItem->Release();
+                }
+            }
+            pFileDialog->Release();
+        }
+        CoUninitialize();
+    }
+
+    return result;
 }
 
 

@@ -10,12 +10,10 @@ void RenderComponent::GuiRender()
 
     bool clicked = ImGui::Button(m_Model ? m_ModelPath.c_str() : "Drop .obj file here", ImVec2(-1, 32));
 
-    // ✅ Right-click directly on the button to open context menu
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         ImGui::OpenPopup("MeshContextMenu");
     }
 
-    // 💧 Drag and drop handler
     if (ImGui::BeginDragDropTarget())
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_FILE"))
@@ -44,7 +42,7 @@ void RenderComponent::GuiRender()
         ImGui::EndDragDropTarget();
     }
 
-    // ✅ Context menu opened on right-click
+
     if (ImGui::BeginPopup("MeshContextMenu"))
     {
         if (ImGui::MenuItem("Clear"))
