@@ -27,11 +27,13 @@ std::string ResourceManager::OpenDirectory()
 }
 
 
-
-
 void ResourceManager::LoadDirectory(const std::string directory) {
-    m_DirectoryContents.clear();
+    m_JoinedPaths.push(directory);
+    LoadDir(directory);
+}
 
+void ResourceManager::LoadDir(const std::string directory) {
+    m_DirectoryContents.clear();
     std::filesystem::path dirPath(directory);
 
     if (!std::filesystem::exists(dirPath)) {
@@ -53,7 +55,6 @@ void ResourceManager::LoadDirectory(const std::string directory) {
 
             m_DirectoryContents.push_back(res);
         }
-        m_JoinedPaths.push(directory);
     }
     catch (const std::filesystem::filesystem_error& e) {
         IE_LOG_ERROR("[LoadDirectory] Filesystem error: " << e.what());
@@ -71,8 +72,9 @@ std::string ResourceManager::GetCurrentPath(){
 void ResourceManager::GoBack(){
     if (m_JoinedPaths.size() > 1) {
         m_JoinedPaths.pop();
-        LoadDirectory(m_JoinedPaths.top());
+        LoadDir(m_JoinedPaths.top());
     }
+    IE_LOG(m_JoinedPaths.size());
 }   
 
 

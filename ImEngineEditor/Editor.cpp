@@ -2,10 +2,13 @@
 #include "ImEngine.h"
 #include "ConsoleLog.h"
 #include "ResourceManager.h"
+#include "Profiler.h"
+
 
 #pragma region GameRendering
 
 void GameLayer::OnRender() {
+    Profiler::Get().Begin("Game Layer Render");
     RenderTexture* framebuffer = m_Editor->GetFrameBuffer();
     if (!framebuffer) return;
 
@@ -27,32 +30,45 @@ void GameLayer::OnRender() {
     if (m_Editor->GetCameraMode() == IE::CameraMode::TWO_D)
         EndMode2D();
 
-    EndTextureMode();  // Done writing to framebuffer
+    EndTextureMode();  
+    Profiler::Get().End("Game Layer Render");
+
 }
 
 void GameLayer::OnUpdate() {
+    Profiler::Get().Begin("Game Layer Update");
+
     for (auto& [type, obj] : m_Editor->GetScene()->GetEntities()) {
         obj->Update();
     }
+    Profiler::Get().End("Game Layer Update");
 }
 
 #pragma endregion
 
 void Editor::Initialize(int argc, char* argv[]) {
+    //Hooking the logger to cout and cerr
     IE::Log::Get().Hook();
+    
     //Registering CurrentComponents
     IE::ComponentRegistry::RegisterComponents();
+    
     //Initializing Core
     m_Core.Initialize(argc, argv);
 
+    //Initializing Window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);  
     InitWindow(800, 600, "Im Engine");
     MaximizeWindow();
+    
+    //Loading the icon
     Image icon = LoadImage("textures/Logo.png"); // Must be a square image (e.g., 64x64)
     SetWindowIcon(icon);
     UnloadImage(icon);
 
+    //Loading Main Scene
     IE::SaveManager::LoadSceneFromAFile(GetScene(),IE::Core::m_WorkFolder + IE::Core::m_StartScene);
+
     //Pushing RenderLayers
     PushLayer(std::make_unique<GameLayer>(this));
     PushOverlay(std::make_unique<ImGuiLayer>(this));
@@ -60,12 +76,12 @@ void Editor::Initialize(int argc, char* argv[]) {
 
 void Editor::Run() {
     while (!WindowShouldClose()) {
+        Profiler::Get().BeginFrame();
+
         BeginDrawing();
-     
 
         m_rStack.Update();
         m_rStack.Render();
-
 
 
         EndDrawing();

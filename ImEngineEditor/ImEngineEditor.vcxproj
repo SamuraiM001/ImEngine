@@ -139,6 +139,7 @@
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="ImGUILayer.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Runtime.cpp" />
   </ItemGroup>
@@ -156,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="ConsoleLog.h" />
     <ClInclude Include="Editor.h" />
+    <ClInclude Include="Profiler.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Runtime.h" />
   </ItemGroup>
@@ -164,6 +166,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="textures\Logo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="resources\mainfont.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

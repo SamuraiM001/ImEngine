@@ -2,12 +2,21 @@
 #include "Editor.h"
 #include "ConsoleLog.h"
 #include "ImEngine.h"
+#include "Profiler.h"
+#include "math.h"
 
+void SetupImGuiStyle(){
 
-
-void SetupImGuiStyle()
-{
     ImGuiStyle& style = ImGui::GetStyle();
+    ImGuiIO& io = ImGui::GetIO();
+    ImFont* font = io.Fonts->AddFontFromFileTTF("resources/mainfont.ttf", 18);
+
+ 
+    if (font) {
+        io.FontDefault = font;
+    }
+
+    rlImGuiReloadFonts();
 
     // Modern spacing & rounding
     style.WindowMinSize = ImVec2(180, 30);
@@ -25,11 +34,17 @@ void SetupImGuiStyle()
     style.ScrollbarRounding = 12.0f;
     style.TabRounding = 8.0f;
 
-    
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+
+
+
+
     ImVec4 red = ImVec4(0.95f, 0.15f, 0.25f, 1.00f);
     ImVec4 redHover = ImVec4(0.95f, 0.15f, 0.25f, 0.70f);
     ImVec4 redLight = ImVec4(0.95f, 0.15f, 0.25f, 0.40f);
-    ImVec4 bgMain = ImVec4(0.09f, 0.09f, 0.09f, 1.00f); // #121212
+    ImVec4 bgMain = ImVec4(0.09f, 0.09f, 0.09f, 1.00f); 
     ImVec4 bgDark = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
     ImVec4 bgLight = ImVec4(0.15f, 0.15f, 0.17f, 1.00f);
     ImVec4 borderDim = ImVec4(0.20f, 0.20f, 0.20f, 0.5f);
@@ -97,16 +112,7 @@ void SetupImGuiStyle()
 void ImGuiLayer::OnAttach() {
     rlImGuiSetup(true);
     SetupImGuiStyle();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-    ImGuiStyle& style = ImGui::GetStyle();
-    style.WindowPadding = ImVec2(0, 0);
-    style.FramePadding = ImVec2(6, 4);
-    style.FrameRounding = 2.0f;
-    style.GrabRounding = 1.0f;
-    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.12f, 1.0f);
 
     m_ResourceManager.LoadDirectory(IE::Core::m_WorkFolder);
 }
@@ -116,6 +122,15 @@ void ImGuiLayer::OnUpdate() {
 }
 
 void ImGuiLayer::HandleBasicInput() {
+    if (IsKeyPressed(KEY_DELETE)) {
+        auto selected = m_Editor->GetSelectedObject();
+        if (!selected.empty()) {
+            auto x = selected[0]; // Save before clearing
+            m_Editor->ClearSelections();
+            m_Editor->GetScene()->DestroyEntity(x->GetID());
+        }
+
+    }
 }
 
 void ImGuiLayer::OnRender() {
@@ -127,6 +142,7 @@ void ImGuiLayer::OnRender() {
     DrawMainMenuBar();
     DrawViewport();
     DrawProjectView();
+    DrawProfiler();
     DrawHierarchy();
     DrawLog();
     DrawProperities();
@@ -324,7 +340,6 @@ void ImGuiLayer::DrawHierarchy()
     auto& entities = m_Editor->GetScene()->GetEntities();
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 8)); 
-    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); 
 
     for (auto& [id, entity] : entities)
     {
@@ -337,18 +352,19 @@ void ImGuiLayer::DrawHierarchy()
 
         ImGui::BeginGroup();
 
-        // Add left margin here
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10); // Adjust this value to control margin
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10); 
 
-        // Start horizontal layout
-        ImGui::Text("%s", ICON_FA_GAMEPAD); // Icon as label
+        ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
+        ImGui::Text("%s", ICON_FA_GAMEPAD); 
+        ImGui::PopFont();
         ImGui::SameLine();
 
-        // Entity name selectable
         if (ImGui::Selectable(entity->m_Name.c_str(), isSelected, ImGuiSelectableFlags_AllowDoubleClick, ImVec2(0, 24)))
         {
+   
+
             if (ImGui::IsMouseDoubleClicked(0)) {
-                // Handle double click
+                
             }
             else {
                 m_Editor->ClearSelections();
@@ -364,7 +380,6 @@ void ImGuiLayer::DrawHierarchy()
         ImGui::PopID();
     }
 
-    ImGui::PopFont();
     ImGui::PopStyleVar();
 
     ImGui::End();
@@ -397,9 +412,9 @@ void ImGuiLayer::DrawProperities() {
 
             // Loop through components and show placeholder UI
             for (const auto& [typeId, component] : obj->GetAllComponents()) {
-                std::string typeName = typeId.name();
+                std::string typeName = component->StaticName();
 
-                if (ImGui::TreeNode(typeName.c_str())) {
+                if (!typeName.empty() && ImGui::TreeNode(typeName.c_str())) {
                     component->GuiRender();
                     ImGui::TreePop();
 
@@ -443,8 +458,8 @@ void ImGuiLayer::DrawProjectView() {
     ImGui::Begin("Project");
     ImGui::Dummy({5,5});
     ImGui::Separator();
-    // 🔙 Back Button and Path Bar
-    if (ImGui::Button(ICON_FA_ARROW_LEFT " Back")) {
+
+    if (ImGui::Button("< Back")) {
         m_ResourceManager.GoBack();
     }
     ImGui::SameLine();
@@ -469,15 +484,15 @@ void ImGuiLayer::DrawProjectView() {
 
         ImGui::BeginGroup();
 
-        // Center button
         float iconOffsetX = (cellSize - thumbnailSize) * 0.5f;
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + iconOffsetX);
 
-        // 🧱 Custom Button Look
+        // Button Style
         ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(60, 60, 60, 255));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(100, 100, 100, 255));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(120, 120, 120, 255));
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
+        ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
 
         if (ImGui::Button(icon, ImVec2(thumbnailSize, thumbnailSize))) {
             if (entry.type == ResourceManager::Dir)
@@ -486,20 +501,26 @@ void ImGuiLayer::DrawProjectView() {
                 IE_LOG("Clicked file: {}", entry.fullPath);
         }
 
+        if (entry.type == ResourceManager::File && ImGui::BeginDragDropSource()) {
+            ImGui::SetDragDropPayload("ASSET_FILE", entry.fullPath.c_str(), entry.fullPath.size() + 1);
+            ImGui::Text("Dragging: %s", entry.name.c_str());
+            ImGui::EndDragDropSource();
+        }
+
+        ImGui::PopFont();
         ImGui::PopStyleVar();
         ImGui::PopStyleColor(3);
 
-        // 📏 Scale text if it's too long
         std::string name = entry.name;
         float maxWidth = thumbnailSize + 10.0f;
         float nameWidth = ImGui::CalcTextSize(name.c_str()).x;
 
-        float textScale = nameWidth > maxWidth ? maxWidth / nameWidth : 1.0f;
+        float textScale = 1.f;
 
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + iconOffsetX);
-        ImGui::SetWindowFontScale(textScale); // Shrink only the label
+        ImGui::SetWindowFontScale(textScale);
         ImGui::TextWrapped(name.c_str());
-        ImGui::SetWindowFontScale(1.0f); // Reset
+        ImGui::SetWindowFontScale(1.0f);
 
         ImGui::EndGroup();
 
@@ -510,6 +531,33 @@ void ImGuiLayer::DrawProjectView() {
     ImGui::Columns(1);
     ImGui::End();
 }
+
+void ImGuiLayer::DrawProfiler() {
+    ImGui::Begin("Profiler");
+
+    const auto& timings = Profiler::Get().GetTimings();
+
+    if (ImGui::BeginTable("ProfilerTable", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        ImGui::TableSetupColumn("Section");
+        ImGui::TableSetupColumn("Call Count");
+        ImGui::TableSetupColumn("Avg Time (ms)");
+        ImGui::TableHeadersRow();
+
+        for (const auto& [name, info] : timings) {
+            double avgTime = (info.totalTime / 1000.0) /  info.callCount; // microseconds to ms
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0); ImGui::TextUnformatted(name.c_str());
+            ImGui::TableSetColumnIndex(1); ImGui::Text("%d", info.callCount);
+            ImGui::TableSetColumnIndex(2); ImGui::Text("%.3f", avgTime);
+        }
+
+        ImGui::EndTable();
+    }
+
+    ImGui::End();
+}
+
 
 
 void ImGuiLayer::DrawLog()

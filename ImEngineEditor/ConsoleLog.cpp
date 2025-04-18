@@ -1,4 +1,10 @@
+#include <Windows.h>
 #include <iostream>
+#include <fstream>
+#include <streambuf>
+#include <string>
+#include <io.h>    
+#include <fcntl.h>  
 #include "ConsoleLog.h"
 
 namespace IE {
@@ -9,6 +15,7 @@ namespace IE {
     }
 
     void Log::Hook() {
+        int m_PipeFd[2];
         RegisterCommand("echo", "Prints the arguments", [](const std::string& input) {
             std::string msg = input.substr(input.find(' ') + 1);
             std::cout << msg << std::endl;

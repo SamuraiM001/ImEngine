@@ -36,6 +36,7 @@ public:
     void DrawHierarchy();
     void DrawProperities();
     void DrawProjectView();
+    void DrawProfiler();
     void DrawLog();
     void DrawViewportButtons(const ImVec2& availableSize, const ImVec2& framebufferSize);
 
