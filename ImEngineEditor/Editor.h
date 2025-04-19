@@ -47,8 +47,9 @@ public:
 public:
     void OnRender() override;
     void OnAttach() override;
+    void OnDetach() override;
     void OnUpdate() override;
-private:
+private:    
     ResourceManager m_ResourceManager;
     Editor* m_Editor; 
 

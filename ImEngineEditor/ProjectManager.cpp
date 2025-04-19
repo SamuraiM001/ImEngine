@@ -135,21 +135,11 @@ std::string ProjectManager::GetProjectPath() {
 
                 std::ofstream out(projectsFile, std::ios::app);
                 out << improjPath << "\n";
-                std::string iniSourcePath = "\\imgui.ini"; 
+
                 std::string iniDestPath = fullPath + "\\imgui.ini";
+                std::ofstream inipath(iniDestPath);
+                inipath << "[Window][Debug##Default]\nPos=60,60\nSize=400,400\nCollapsed=0\n\n[Window][Sal]\nPos=743,565\nSize=764,159\nCollapsed=0\n\n[Window][SAKL]\nPos=682,373\nSize=664,347\nCollapsed=0\n\n[Window][Dear ImGui Demo]\nPos=1096,405\nSize=1234,661\nCollapsed=0\n\n[Window][Dear ImGui Metrics/Debugger]\nPos=1108,129\nSize=653,623\nCollapsed=0\n\n[Window][DockSpace]\nSize=1920,1020\nCollapsed=0\n\n[Window][DockSpaceRoot]\nSize=1920,1020\nCollapsed=0\n\n[Window][Toolbar]\nPos=127,42\nSize=600,50\nCollapsed=0\n\n[Window][DockspaceBackground]\nSize=1920,1020\nCollapsed=0\n\n[Window][DockspaceWindow]\nSize=1920,1020\nCollapsed=0\n\n[Window][DockSpaceHost]\nPos=0,0\nSize=1920,991\nCollapsed=0\n\n[Window][Decorated Window]\nPos=883,141\nSize=289,42\nCollapsed=0\n\n[Window][Sample Window]\nSize=1824,991\nCollapsed=0\nDockId=0x00000001,0\n\n[Window][Console]\nPos=235,622\nSize=1412,369\nCollapsed=0\nDockId=0x00000007,1\n\n[Window][Inspector]\nPos=1649,25\nSize=271,966\nCollapsed=0\nDockId=0x00000006,0\n\n[Window][Hierarchy]\nPos=8,38\nSize=495,945\nCollapsed=0\nDockId=0x00000007,0\n\n[Window][Viewport]\nPos=359,25\nSize=1188,480\nCollapsed=0\nDockId=0x0000000D,0\n\n[Window][Hierarchu]\nPos=0,25\nSize=330,966\nCollapsed=0\nDockId=0x00000009,0\n\n[Window][Properities]\nPos=0,25\nSize=420,966\nCollapsed=0\nDockId=0x00000007,0\n\n[Window][Properties]\nPos=1558,38\nSize=354,945\nCollapsed=0\nDockId=0x00000004,0\n\n[Window][Debug Log]\nPos=539,672\nSize=1008,319\nCollapsed=0\nDockId=0x0000000C,0\n\n[Window][Developer Console]\nPos=505,669\nSize=1051,314\nCollapsed=0\nDockId=0x00000010,0\n\n[Window][Sapalaqius]\nPos=505,38\nSize=1051,629\nCollapsed=0\nDockId=0x0000000F,0\n\n[Window][Project]\nPos=505,669\nSize=1051,314\nCollapsed=0\nDockId=0x00000010,1\n\n[Window][Profiler]\nPos=505,669\nSize=1051,314\nCollapsed=0\nDockId=0x00000010,2\n\n[Docking][Data]\nDockSpace ID=0x94EF87A8 Window=0x34F970D7 Pos=8,38 Size=1904,945 Split=X\n  DockNode ID=0x00000003 Parent=0x94EF87A8 SizeRef=1564,966 Split=X\n    DockNode ID=0x00000009 Parent=0x00000003 SizeRef=330,966 Selected=0x9F9F1B7F\n    DockNode ID=0x0000000A Parent=0x00000003 SizeRef=1588,966 Split=X\n      DockNode ID=0x00000005 Parent=0x0000000A SizeRef=1647,966 Split=X\n        DockNode ID=0x00000001 Parent=0x00000005 SizeRef=1824,991 Selected=0x987D410F\n        DockNode ID=0x00000002 Parent=0x00000005 SizeRef=94,991 Split=X Selected=0x8C72BEA8\n          DockNode ID=0x00000007 Parent=0x00000002 SizeRef=495,966 CentralNode=1 Selected=0xBABDAE5E\n          DockNode ID=0x00000008 Parent=0x00000002 SizeRef=1051,966 Split=Y Selected=0xC450F867\n            DockNode ID=0x0000000B Parent=0x00000008 SizeRef=393,645 Split=Y Selected=0xCCA4E27C\n              DockNode ID=0x0000000D Parent=0x0000000B SizeRef=1188,480 Selected=0xC450F867\n              DockNode ID=0x0000000E Parent=0x0000000B SizeRef=1188,484 Split=Y Selected=0x9C21DE82\n                DockNode ID=0x0000000F Parent=0x0000000E SizeRef=1055,629 Selected=0xA0E0BDFD\n                DockNode ID=0x00000010 Parent=0x0000000E SizeRef=1055,314 Selected=0xCCA4E27C\n            DockNode ID=0x0000000C Parent=0x00000008 SizeRef=393,319 Selected=0x2D9FB795\n      DockNode ID=0x00000006 Parent=0x0000000A SizeRef=271,966 Selected=0x36DC96AB\n  DockNode ID=0x00000004 Parent=0x94EF87A8 SizeRef=354,966 Selected=0x8C72BEA8";
 
-                IE_LOG(iniSourcePath);
-
-
-                // Check if the imgui.ini file exists before copying
-                if (std::filesystem::exists(iniSourcePath)) {
-                    try {
-                        std::filesystem::copy(iniSourcePath, iniDestPath);
-                    }
-                    catch (const std::exception& e) {
-                        std::cerr << "Error copying imgui.ini: " << e.what() << std::endl;
-                    }
-                }
                 selectedPath = improjPath;
                 break;
             }

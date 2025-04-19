@@ -15,12 +15,9 @@ void ImGuiLayer::SetupImGuiStyle(){
         mainfont_ttf_len,          
         18.0f                      
     ); 
-    ImGui::GetIO().IniFilename = nullptr;
-    ImGui::GetIO().IniFilename = (IE::Core::m_WorkFolder.c_str()) + (char)"/imgui.ini";  // Set to your project folder
     if (font)io.FontDefault = font;
 
     rlImGuiReloadFonts();
-
     // Modern spacing & rounding
     style.WindowMinSize = ImVec2(180, 30);
     style.FramePadding = ImVec2(10, 6);
@@ -67,11 +64,13 @@ void ImGuiLayer::SetupImGuiStyle(){
     style.Colors[ImGuiCol_FrameBgActive] = red;
 
     style.Colors[ImGuiCol_TitleBg] = bgDark;
-    style.Colors[ImGuiCol_TitleBgActive] = red;
+    style.Colors[ImGuiCol_TitleBgActive] = bgDark;
     style.Colors[ImGuiCol_TitleBgCollapsed] = bgDark;
 
     style.Colors[ImGuiCol_MenuBarBg] = bgDark;
     style.Colors[ImGuiCol_ScrollbarBg] = bgDark;
+    style.Colors[ImGuiCol_TabSelectedOverline] = ImVec4(0.05f, 0.15f, 0.30f, 1.00f);
+
     style.Colors[ImGuiCol_ScrollbarGrab] = redLight;
     style.Colors[ImGuiCol_ScrollbarGrabHovered] = redHover;
     style.Colors[ImGuiCol_ScrollbarGrabActive] = red;
@@ -120,6 +119,12 @@ void ImGuiLayer::OnAttach() {
     m_ResourceManager.LoadDirectory(IE::Core::m_WorkFolder);
 }
 
+void ImGuiLayer::OnDetach(){
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImGui::SaveIniSettingsToDisk(io.IniFilename);
+}
+
 void ImGuiLayer::OnUpdate() {
     HandleBasicInput();
 }
@@ -141,6 +146,8 @@ void ImGuiLayer::OnRender() {
 
     ClearBackground(BLACK);
 
+    //ImGui::ShowDemoWindow();
+    
     DrawMainDockspace();
     DrawMainMenuBar();
     DrawViewport();

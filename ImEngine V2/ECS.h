@@ -17,6 +17,7 @@ namespace IE {
         virtual ~Component() = default;
         virtual void Start() {}
         virtual void Update() {}
+        virtual void EditorUpdate() {}
         virtual void Render() {}
         virtual void GuiRender() {};
 
@@ -48,7 +49,8 @@ namespace IE {
             return m_Components;
         }
 
-        void Update(); 
+        void Update();
+        void EditorUpdate();
         
 
 

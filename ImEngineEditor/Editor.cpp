@@ -22,7 +22,6 @@ void GameLayer::OnRender() {
         BeginMode3D(*m_Editor->Get3DCamera());
     if (m_Editor->GetCameraMode() == IE::CameraMode::TWO_D)
         BeginMode2D(*m_Editor->Get2DCamera());
-
     DrawGrid(20, 1.0f);
     for (auto& [type, obj] : m_Editor->GetScene()->GetEntities()) {
         obj->Render();
@@ -41,7 +40,7 @@ void GameLayer::OnUpdate() {
     Profiler::Get().Begin("Game Layer Update");
 
     for (auto& [type, obj] : m_Editor->GetScene()->GetEntities()) {
-        obj->Update();
+        obj->EditorUpdate();
     }
     Profiler::Get().End("Game Layer Update");
 }
@@ -91,6 +90,7 @@ void Editor::Shutdown() {
     m_RuntimeManager.Unload();
     IE::Log::Get().Unhook();
     m_Core.Shutdown();
+    IE::SaveManager::SaveSceneToAFile(GetScene());
     CloseWindow();
 }
 

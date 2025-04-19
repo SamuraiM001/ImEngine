@@ -8,7 +8,7 @@ namespace IE {
 	class RenderLayer {
 	public:
 		explicit RenderLayer() = default;
-		virtual ~RenderLayer() = default;  
+		virtual ~RenderLayer() { OnDetach(); };
 		virtual void OnAttach() {};
 		virtual void OnDetach() {};
 		virtual void OnRender() {};

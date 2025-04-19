@@ -2,7 +2,6 @@
 
 #include "ECS.h"
 #include "ImEngine.h"
-
 namespace IE {
 
     class RenderComponent : public Component {
@@ -21,5 +20,15 @@ namespace IE {
     public:
         static std::string StaticName() { return "RenderComponent"; }
         void Render() override;
+    };
+
+    class ScriptComponent :public Component {
+    protected:
+        std::string filePath;
+    public:
+        static std::string StaticName() { return "Sat"; }
+
+
+
     };
 }

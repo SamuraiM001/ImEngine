@@ -28,6 +28,12 @@ void Object::Update() {
     }
 }
 
+void Object::EditorUpdate(){
+    for (auto& [type, obj] : m_Components) {
+        obj->EditorUpdate();
+    }
+}
+
 void Object::Render(){
     for (auto& [type, obj] : m_Components) {
         obj->Render();
