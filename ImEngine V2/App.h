@@ -16,6 +16,10 @@ namespace IE {
 			m_rStack.PushOverlay(std::move(layer));
 		}
 
+		RenderStack* GetRenderStack() {
+			return &m_rStack;
+		}
+
 		virtual void Run() {};
 		virtual void Shutdown() {};
 	};

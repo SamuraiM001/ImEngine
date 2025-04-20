@@ -18,10 +18,22 @@ namespace IE {
 	class RenderStack{
 	protected: 
 		int LayerIdx = 0;
-		std::vector<std::unique_ptr<RenderLayer>> Layers;
+		std::vector<std::unique_ptr<RenderLayer>> m_Layers;
 	public:
 		void PushLayer(std::unique_ptr<RenderLayer> layer);
 		void PushOverlay(std::unique_ptr<RenderLayer> overlay);
+		
+	
+		template<typename T>
+		T* GetLayer() {
+			for (auto& layer : m_Layers) {
+				if (auto typedLayer = dynamic_cast<T*>(layer.get())) {
+					return typedLayer;
+				}
+			}
+			return nullptr;
+		}
+
 		void Render();
 		void Update();
 	};

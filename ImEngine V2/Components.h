@@ -26,9 +26,9 @@ namespace IE {
     protected:
         std::string filePath;
     public:
-        static std::string StaticName() { return "Sat"; }
+        static std::string StaticName() { }
 
-
+        
 
     };
 }

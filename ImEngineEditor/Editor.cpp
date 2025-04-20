@@ -11,25 +11,21 @@ void GameLayer::OnRender() {
 
 
     Profiler::Get().Begin("Game Layer Render");
-    RenderTexture* framebuffer = m_Editor->GetFrameBuffer();
+    RenderTexture* framebuffer = m_Editor->GetRenderStack()->GetLayer<ImGuiLayer>()->GetFrameBuffer();
     if (!framebuffer) return;
 
     BeginTextureMode(*framebuffer);  
 
     ClearBackground(BLACK);
-
-    if (m_Editor->GetCameraMode() == IE::CameraMode::THREE_D)
-        BeginMode3D(*m_Editor->Get3DCamera());
-    if (m_Editor->GetCameraMode() == IE::CameraMode::TWO_D)
-        BeginMode2D(*m_Editor->Get2DCamera());
+    BeginMode3D(*Get3DCamera());
     DrawGrid(20, 1.0f);
+
+
     for (auto& [type, obj] : m_Editor->GetScene()->GetEntities()) {
         obj->Render();
     }
-    if (m_Editor->GetCameraMode() == IE::CameraMode::THREE_D)
-        EndMode3D();
-    if (m_Editor->GetCameraMode() == IE::CameraMode::TWO_D)
-        EndMode2D();
+    
+    EndMode3D();
 
     EndTextureMode();  
     Profiler::Get().End("Game Layer Render");
@@ -97,9 +93,9 @@ void Editor::Shutdown() {
 void Editor::HandleCameraMovementInput()
 {
 
-    if (m_CamM == IE::CameraMode::THREE_D){
+    if (GetRenderStack()->GetLayer<GameLayer>()->GetCameraMode() == IE::CameraMode::THREE_D) {
 
-        UpdateCameraPro(&m_3DCamera,
+        UpdateCameraPro(GetRenderStack()->GetLayer<GameLayer>()->Get3DCamera(),
             Vector3({
                  ((IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) * 0.1f - (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) * 0.1f),
                  ((IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) * 0.1f - (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) * 0.1f),
@@ -120,22 +116,22 @@ void Editor::HandleCameraMovementInput()
     }
 
     // 2D Camera Movement (manual controls)
-    if (m_CamM == IE::CameraMode::TWO_D)
+    if (GetRenderStack()->GetLayer<GameLayer>()->GetCameraMode() == IE::CameraMode::TWO_D)
     {
         // Move the 2D camera using arrow keys or WASD
         float moveSpeed = 200.0f * GetFrameTime();  // Speed of movement, scaled by frame time for smooth movement
 
         // Move the camera with WASD keys
-        if (IsKeyDown(KEY_W)) m_2DCamera.target.y -= moveSpeed;
-        if (IsKeyDown(KEY_S)) m_2DCamera.target.y += moveSpeed;
-        if (IsKeyDown(KEY_A)) m_2DCamera.target.x -= moveSpeed;
-        if (IsKeyDown(KEY_D)) m_2DCamera.target.x += moveSpeed;
+        if (IsKeyDown(KEY_W)) GetRenderStack()->GetLayer<GameLayer>()->Get2DCamera()->target.y -= moveSpeed;
+        if (IsKeyDown(KEY_S)) GetRenderStack()->GetLayer<GameLayer>()->Get2DCamera()->target.y += moveSpeed;
+        if (IsKeyDown(KEY_A)) GetRenderStack()->GetLayer<GameLayer>()->Get2DCamera()->target.y -= moveSpeed;
+        if (IsKeyDown(KEY_D)) GetRenderStack()->GetLayer<GameLayer>()->Get2DCamera()->target.y += moveSpeed;
 
         // Zoom in and out with the mouse wheel
         float zoomSpeed = 0.05f;  // Zoom speed
-        m_2DCamera.zoom += GetMouseWheelMove() * zoomSpeed;
-        if (m_2DCamera.zoom < 0.1f) m_2DCamera.zoom = 0.1f;  // Prevent zooming out too much
-        if (m_2DCamera.zoom > 5.0f) m_2DCamera.zoom = 5.0f;   // Prevent zooming in too much
+        GetRenderStack()->GetLayer<GameLayer>()->Get2DCamera()->zoom += GetMouseWheelMove() * zoomSpeed;
+        if (GetRenderStack()->GetLayer<GameLayer>()->Get2DCamera()->zoom < 0.1f) GetRenderStack()->GetLayer<GameLayer>()->Get2DCamera()->zoom = 0.1f;  // Prevent zooming out too much
+        if (GetRenderStack()->GetLayer<GameLayer>()->Get2DCamera()->zoom > 5.0f) GetRenderStack()->GetLayer<GameLayer>()->Get2DCamera()->zoom = 5.0f;   // Prevent zooming in too much
     }
 }
 

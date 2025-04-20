@@ -3,24 +3,24 @@
 using namespace IE;
 
 void RenderStack::PushLayer(std::unique_ptr<RenderLayer> layer) {
-    Layers.insert(Layers.begin() + LayerIdx, std::move(layer));
-    Layers[LayerIdx]->OnAttach();
+    m_Layers.insert(m_Layers.begin() + LayerIdx, std::move(layer));
+    m_Layers[LayerIdx]->OnAttach();
     LayerIdx++;
 }
 
 void RenderStack::PushOverlay(std::unique_ptr<RenderLayer> overlay) {
-    Layers.push_back(std::move(overlay));
-    Layers.back()->OnAttach();
+    m_Layers.push_back(std::move(overlay));
+    m_Layers.back()->OnAttach();
 }
 
 void RenderStack::Render() {
-    for (auto& layer : Layers) {
+    for (auto& layer : m_Layers) {
         layer->OnRender();
     }
 }
 
-void IE::RenderStack::Update(){
-    for (auto& layer : Layers) {
+void RenderStack::Update(){
+    for (auto& layer : m_Layers) {
         layer->OnUpdate();
     }
 }

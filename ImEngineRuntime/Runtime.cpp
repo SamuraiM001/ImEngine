@@ -19,7 +19,7 @@ RUNTIME_API void InitRuntime(void* windowHandle) {
         return;
     }
 
-    SetTraceLogLevel(LOG_WARNING);  // Reduce log spam
+    SetTraceLogLevel(LOG_WARNING); 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(600, 600, "Runtime View");
 
@@ -39,14 +39,10 @@ RUNTIME_API void TickRuntime(float deltaTime) {
         s_RequestingExit = true;
     }
 
-    UpdateCamera(&s_Camera, CAMERA_ORBITAL);
 
     BeginDrawing();
-    ClearBackground(BLACK);
 
-    BeginMode3D(s_Camera);
-    DrawGrid(10, 1.0f);
-    EndMode3D();
+
     EndDrawing();
 }
 

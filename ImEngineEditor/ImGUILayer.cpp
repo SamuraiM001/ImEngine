@@ -259,7 +259,7 @@ void ImGuiLayer::DrawViewport() {
     if (isMouseLocked) m_Editor->HandleCameraMovementInput();  
 
     ImVec2 availableSize = ImGui::GetContentRegionAvail();
-    RenderTexture* framebuffer = m_Editor->GetFrameBuffer();
+    RenderTexture* framebuffer = m_Editor->GetRenderStack()->GetLayer<ImGuiLayer>()->GetFrameBuffer();
 
     constexpr float aspectRatio = 16.0f / 9.0f;
     ImVec2 imageSize = availableSize;
@@ -425,7 +425,7 @@ void ImGuiLayer::DrawProperities() {
             for (const auto& [typeId, component] : obj->GetAllComponents()) {
                 std::string typeName = component->StaticName();
 
-                if (!typeName.empty() && ImGui::TreeNode(typeName.c_str())) {
+                if (!typeName.empty() && ImGui::TreeNodeEx(typeName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
                     component->GuiRender();
                     ImGui::TreePop();
 
@@ -467,7 +467,6 @@ void ImGuiLayer::DrawProperities() {
 
 void ImGuiLayer::DrawProjectView() {
     ImGui::Begin("Project");
-    ImGui::Dummy({5,5});
     ImGui::Separator();
 
     if (ImGui::Button("< Back")) {
