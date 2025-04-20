@@ -41,7 +41,7 @@ private:
     std::mutex m_Mutex;
 
     // Function pointers
-    void (*m_Init)(void*) = nullptr;
+    void (*m_Init)(std::string) = nullptr;
     void (*m_Tick)(float) = nullptr;
     void (*m_Shutdown)() = nullptr;
     bool (*m_IsRequestingExit)() = nullptr;

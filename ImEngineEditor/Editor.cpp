@@ -5,43 +5,6 @@
 #include "Profiler.h"
 #include "Constants.h"
 
-#pragma region GameRendering
-
-void GameLayer::OnRender() {
-
-
-    Profiler::Get().Begin("Game Layer Render");
-    RenderTexture* framebuffer = m_Editor->GetRenderStack()->GetLayer<ImGuiLayer>()->GetFrameBuffer();
-    if (!framebuffer) return;
-
-    BeginTextureMode(*framebuffer);  
-
-    ClearBackground(BLACK);
-    BeginMode3D(*Get3DCamera());
-    DrawGrid(20, 1.0f);
-
-
-    for (auto& [type, obj] : m_Editor->GetScene()->GetEntities()) {
-        obj->Render();
-    }
-    
-    EndMode3D();
-
-    EndTextureMode();  
-    Profiler::Get().End("Game Layer Render");
-
-}
-
-void GameLayer::OnUpdate() {
-    Profiler::Get().Begin("Game Layer Update");
-
-    for (auto& [type, obj] : m_Editor->GetScene()->GetEntities()) {
-        obj->EditorUpdate();
-    }
-    Profiler::Get().End("Game Layer Update");
-}
-
-#pragma endregion
 
 void Editor::Initialize(int argc, char* argv[]) {
     //Hooking the logger to cout and cerr
@@ -53,7 +16,7 @@ void Editor::Initialize(int argc, char* argv[]) {
     //Initializing Core
     m_Core.Initialize(argc, argv);
     //Initializing Window
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT);  
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT );  
     InitWindow(800, 600, "Im Engine");
     MaximizeWindow();
     
@@ -62,11 +25,9 @@ void Editor::Initialize(int argc, char* argv[]) {
     SetWindowIcon(icon);
     UnloadImage(icon);
 
-    //Loading Main Scene
-    IE::SaveManager::LoadSceneFromAFile(GetScene(),IE::Core::m_WorkFolder + IE::Core::m_StartScene);
 
     //Pushing RenderLayers
-    PushLayer(std::make_unique<GameLayer>(this));
+    PushLayer(std::make_unique<GameLayer>());
     PushOverlay(std::make_unique<ImGuiLayer>(this));
 }
 
@@ -86,7 +47,7 @@ void Editor::Shutdown() {
     m_RuntimeManager.Unload();
     IE::Log::Get().Unhook();
     m_Core.Shutdown();
-    IE::SaveManager::SaveSceneToAFile(GetScene());
+    m_rStack.Free();
     CloseWindow();
 }
 

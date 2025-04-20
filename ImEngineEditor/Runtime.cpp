@@ -1,4 +1,5 @@
 #include "Runtime.h"
+#include "ImEngine.h"
 
 RuntimeManager::RuntimeManager() {
     Load();
@@ -25,7 +26,7 @@ void RuntimeManager::Load() {
         return ptr;
         };
 
-    m_Init = reinterpret_cast<void(*)(void*)>(getProc("InitRuntime"));
+    m_Init = reinterpret_cast<void(*)(std::string)>(getProc("InitRuntime"));
     m_Tick = reinterpret_cast<void(*)(float)>(getProc("TickRuntime"));
     m_Shutdown = reinterpret_cast<void(*)()>(getProc("Shutdown"));
     m_IsRequestingExit = reinterpret_cast<bool(*)()>(getProc("IsRuntimeRequestingExit"));
@@ -39,7 +40,7 @@ void RuntimeManager::Load() {
             if (!m_Running) break;
 
             if (!m_Initialized && m_Init) {
-                m_Init(nullptr); 
+                m_Init(IE::Core::m_ProjectFile);
                 m_Initialized = true;
             }
 
@@ -110,10 +111,6 @@ void RuntimeManager::Stop() {
 
 
 
-void RuntimeManager::MT(void* PW) {
-    std::lock_guard<std::mutex> lock(m_Mutex);
-    if (m_Init) m_Init(PW);
-}
 
 bool RuntimeManager::IsRunning() const {
     return m_Running.load();

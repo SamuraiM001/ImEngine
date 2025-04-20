@@ -34,6 +34,7 @@ namespace IE {
 			return nullptr;
 		}
 
+		void Free();
 		void Render();
 		void Update();
 	};

@@ -9,7 +9,12 @@
 
 extern "C" {
     RUNTIME_API bool IsRuntimeRequestingExit();
-    RUNTIME_API void InitRuntime(void* windowHandle);  // Pass parent window handle
+    RUNTIME_API void InitRuntime(std::string ProjectPath);  // Pass parent window handle
     RUNTIME_API void TickRuntime(float deltaTime);
     RUNTIME_API void Shutdown();
 }
+
+std::string m_ProjectPath;
+
+IE::Scene m_Scene;
+

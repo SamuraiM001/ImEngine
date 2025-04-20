@@ -28,7 +28,6 @@ namespace IE {
     public:
         static std::string StaticName() { }
 
-        
 
     };
 }

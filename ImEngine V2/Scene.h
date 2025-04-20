@@ -9,9 +9,7 @@ namespace IE {
     class Scene {
     public:
         Scene();
-        ~Scene() {
-            SaveManager::SaveSceneToAFile(this);
-        }
+        ~Scene() {}
         Object& CreateEntity();
         void DestroyEntity(uint32_t id);
 

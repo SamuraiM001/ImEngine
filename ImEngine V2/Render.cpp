@@ -24,3 +24,9 @@ void RenderStack::Update(){
         layer->OnUpdate();
     }
 }
+
+void RenderStack::Free() {
+    for (auto& layer : m_Layers) {
+        layer->OnDetach();
+    }
+}

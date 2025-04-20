@@ -135,7 +135,7 @@ void ImGuiLayer::HandleBasicInput() {
         if (!selected.empty()) {
             auto x = selected[0]; // Save before clearing
             m_Editor->ClearSelections();
-            m_Editor->GetScene()->DestroyEntity(x->GetID());
+            m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->DestroyEntity(x->GetID());
         }
 
     }
@@ -172,15 +172,15 @@ void ImGuiLayer::DrawMainMenuBar() {
             if (ImGui::MenuItem("New")) {
             }
             if (ImGui::MenuItem("Open")) {
-                IE::SaveManager::SaveSceneToAFile(m_Editor->GetScene());
+                IE::SaveManager::SaveSceneToAFile(m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene());
                 std::string selectedFilePath = ResourceManager::OpenFile("imscene");
                 if (!selectedFilePath.empty()) {
                     m_Editor->ClearSelections();
-                    IE::SaveManager::LoadSceneFromAFile(m_Editor->GetScene(),selectedFilePath);
+                    IE::SaveManager::LoadSceneFromAFile(m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene(),selectedFilePath);
                 }
             }
             if (ImGui::MenuItem("Save")) {
-                IE::SaveManager::SaveSceneToAFile(m_Editor->GetScene());
+                IE::SaveManager::SaveSceneToAFile(m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene());
             }
 
             ImGui::EndMenu(); 
@@ -237,7 +237,7 @@ void ImGuiLayer::DrawMainDockspace() {
 
 
 void ImGuiLayer::DrawViewport() {
-    std::string name = m_Editor->GetScene()->GetName()!="" ? m_Editor->GetScene()->GetName() : "Viewport";
+    std::string name = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetName()!="" ? m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetName() : "Viewport";
     ImGui::Begin(name.c_str());
 
     // Handle mouse lock for camera control
@@ -259,7 +259,7 @@ void ImGuiLayer::DrawViewport() {
     if (isMouseLocked) m_Editor->HandleCameraMovementInput();  
 
     ImVec2 availableSize = ImGui::GetContentRegionAvail();
-    RenderTexture* framebuffer = m_Editor->GetRenderStack()->GetLayer<ImGuiLayer>()->GetFrameBuffer();
+    RenderTexture* framebuffer = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetFrameBuffer();
 
     constexpr float aspectRatio = 16.0f / 9.0f;
     ImVec2 imageSize = availableSize;
@@ -316,6 +316,7 @@ void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& 
 
     if (ImGui::Button("Play", buttonSize)) {
         m_Editor->GetRuntimeManager()->Start(this);
+        IE::SaveManager::SaveSceneToAFile(m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene());
         IE_LOG("Runtime Started");
     }
 
@@ -332,7 +333,7 @@ void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& 
 
     if (ImGui::BeginCombo("Create Entity", "Select Entity")) {
         if (ImGui::Selectable("Empty Entity")) {
-            m_Editor->GetScene()->CreateEntity();
+            m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->CreateEntity();
         }
         ImGui::EndCombo();
     }
@@ -348,7 +349,7 @@ void ImGuiLayer::DrawHierarchy()
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
         m_Editor->ClearSelections();
 
-    auto& entities = m_Editor->GetScene()->GetEntities();
+    auto& entities = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetEntities();
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 8)); 
 

@@ -12,28 +12,13 @@ public:
         int callCount = 0;
     };
 
-    static Profiler& Get() {
-        static Profiler instance;
-        return instance;
-    }
+    static Profiler& Get();
 
-    void BeginFrame() {
-        m_Timings.clear();
-    }
+    void BeginFrame();
 
-    void Begin(const std::string& name) {
-        m_StartTimes[name] = std::chrono::high_resolution_clock::now();
-    }
+    void Begin(const std::string& name);
 
-    void End(const std::string& name) {
-        auto end = std::chrono::high_resolution_clock::now();
-        auto start = m_StartTimes[name];
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-
-        TimingInfo& info = m_Timings[name];
-        info.totalTime += duration;
-        info.callCount++;
-    }
+    void End(const std::string& name);
 
     const std::unordered_map<std::string, TimingInfo>& GetTimings() const {
         return m_Timings;

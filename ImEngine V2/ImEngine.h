@@ -7,5 +7,6 @@
 #include "Scene.h"
 #include "SaveManager.h"
 #include "ComponentRegistry.h"
+#include "RenderLayers.h"
 
 #include "raymath.h"

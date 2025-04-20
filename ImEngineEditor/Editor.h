@@ -13,29 +13,6 @@
 
 class Editor;
 
-class GameLayer :public IE::RenderLayer {
-    Editor* m_Editor;  
-
-    Camera3D  m_3DCamera = {
-        { 4.0f, 4.0f, 4.0f },
-       { 0.0f, 0.0f, 0.0f },
-       { 0.0f, 1.0f, 0.0f },
-        45.0f,
-       CAMERA_PERSPECTIVE
-    };
-    Camera2D  m_2DCamera = { 0 };
-    IE::CameraMode m_CamM = IE::CameraMode::THREE_D;
-public:
-    IE::CameraMode GetCameraMode() { return m_CamM; };
-    Camera2D* Get2DCamera() { return &m_2DCamera; }
-    Camera3D* Get3DCamera() { return &m_3DCamera; }
-    GameLayer(Editor* editor) : m_Editor(editor) {
-        IE_ASSERT(editor != nullptr, "Editor pointer cannot be null!");
-    }
-    void OnRender()override;
-    void OnUpdate()override;
-};
-
 
 class ImGuiLayer : public IE::RenderLayer {
 public:
@@ -59,7 +36,6 @@ public:
 public:
     void HandleBasicInput();
 public:
-    RenderTexture* GetFrameBuffer() { return &framebuffer; };
     void OnRender() override;
     void OnAttach() override;
     void OnDetach() override;
@@ -67,18 +43,16 @@ public:
 private:    
     ResourceManager m_ResourceManager;
     Editor* m_Editor; 
-    RenderTexture framebuffer;
+
 
 };
 
 
-class Editor : public IE::App
-{
+class Editor : public IE::App{
 private:
     IE::Core m_Core;
     RuntimeManager m_RuntimeManager;
     
-    IE::Scene m_Scene;
     std::vector <IE::Object*> m_selectedObjects;
 public:
 	Editor() {};
@@ -93,6 +67,5 @@ public:
     RuntimeManager* GetRuntimeManager() { return &m_RuntimeManager; };
 public:
     //Getters
-    IE::Scene* GetScene() { return &m_Scene;}
     std::vector <IE::Object*> GetSelectedObject() {return m_selectedObjects;};
 };
