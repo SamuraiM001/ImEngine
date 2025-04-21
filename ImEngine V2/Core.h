@@ -19,6 +19,7 @@ namespace IE{
     class Core{
     private:
         void ParseProjectFile(std::string folder);
+        void WriteProjectFile();
     public:
             static std::string m_ProjectName;
             static std::string m_WorkFolder;

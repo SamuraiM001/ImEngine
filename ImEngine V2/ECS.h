@@ -52,6 +52,7 @@ namespace IE {
         void Update();
         void EditorUpdate();
         
+        void AddChild(std::shared_ptr<Object> child);
 
 
         void Render();
@@ -70,10 +71,12 @@ namespace IE {
         Vector3 m_Position = { 0, 0, 0 };
         Vector3 m_Rotation = { 0, 0, 0 };
         Vector3 m_Scale = { 1, 1, 1 };
-
     private:
         uint32_t m_ID;
         std::unordered_map<std::type_index, std::unique_ptr<Component>> m_Components;
+        
+        Object* m_Parent = nullptr;
+        std::vector<std::shared_ptr<Object>> m_Children;
     };
 
 

@@ -237,74 +237,80 @@ void ImGuiLayer::DrawMainDockspace() {
 
 
 void ImGuiLayer::DrawViewport() {
-    std::string name = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetName()!="" ? m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetName() : "Viewport";
-    ImGui::Begin(name.c_str());
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    std::string name = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetName();
+    if (name == "") name = "Scene View";
+    ImGui::Begin((name + "###SceneViewDock").c_str(), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) &&
+        ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+        ImGui::OpenPopup("TabContextMenu");
+    }
+
+    if (ImGui::BeginPopup("TabContextMenu")) {
+        static char rename_buffer[128] = "";
+        ImGui::SetKeyboardFocusHere();
+        if (ImGui::InputText("##rename", rename_buffer, IM_ARRAYSIZE(rename_buffer),
+            ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
+            name = rename_buffer;
+            m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->SetName(name);
+            ImGui::CloseCurrentPopup();
+        }
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape) ||
+            (!ImGui::IsItemHovered() && ImGui::IsMouseClicked(0))) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
 
     // Handle mouse lock for camera control
     if (ImGui::IsWindowHovered() && IsMouseButtonPressed(MOUSE_RIGHT_BUTTON) && !isMouseLocked) {
         DisableCursor();
-        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse; 
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
         ImGui::SetWindowFocus();
         isMouseLocked = true;
     }
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered())m_Editor->ClearSelections();
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered())
+        m_Editor->ClearSelections();
 
     if (IsMouseButtonReleased(MOUSE_RIGHT_BUTTON) && isMouseLocked) {
         EnableCursor();
-        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;  
+        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
         isMouseLocked = false;
     }
 
-    // Handle camera movement input when mouse is locked
-    if (isMouseLocked) m_Editor->HandleCameraMovementInput();  
+    if (isMouseLocked)
+        m_Editor->HandleCameraMovementInput();
 
     ImVec2 availableSize = ImGui::GetContentRegionAvail();
     RenderTexture* framebuffer = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetFrameBuffer();
 
-    constexpr float aspectRatio = 16.0f / 9.0f;
-    ImVec2 imageSize = availableSize;
-
-    // Force 16:9 ratio
-    float availableAspect = availableSize.x / availableSize.y;
-    if (availableAspect > aspectRatio) {
-        imageSize.x = availableSize.y * aspectRatio;
-        imageSize.y = availableSize.y;
-    }
-    else {
-        imageSize.x = availableSize.x;
-        imageSize.y = availableSize.x / aspectRatio;
-    }
-
-    // Only recreate framebuffer if the size has actually changed
-    int newWidth = static_cast<int>(imageSize.x);
-    int newHeight = static_cast<int>(imageSize.y);
-
-    if (newWidth != framebuffer->texture.width || newHeight != framebuffer->texture.height) {
+    // Resize framebuffer if size changed
+    if (static_cast<int>(availableSize.x) != framebuffer->texture.width ||
+        static_cast<int>(availableSize.y) != framebuffer->texture.height) {
         UnloadRenderTexture(*framebuffer);
-        *framebuffer = LoadRenderTexture(newWidth, newHeight);
+        *framebuffer = LoadRenderTexture(
+            static_cast<int>(availableSize.x),
+            static_cast<int>(availableSize.y)
+        );
     }
 
-    // Center the image in the viewport
-    ImVec2 cursorPos = ImGui::GetCursorPos();
-    ImVec2 offset = {
-        (availableSize.x - imageSize.x) / 2.0f,
-        (availableSize.y - imageSize.y) / 2.0f
-    };
-    ImGui::SetCursorPos(ImVec2(cursorPos.x + offset.x, cursorPos.y + offset.y));
-
-    // Draw the image
+    // Draw the image directly, filling the entire area
     ImGui::Image(
         (ImTextureID)(uintptr_t)&framebuffer->texture,
-        imageSize,
-        ImVec2(0, 1), ImVec2(1, 0)  // Flip vertically
+        availableSize,
+        ImVec2(0, 1),  // bottom-left
+        ImVec2(1, 0)   // top-right (flip Y)
     );
 
-    // Draw the buttons
-    DrawViewportButtons(availableSize, imageSize);
+    // Overlay UI like Play/Stop buttons
+    DrawViewportButtons(availableSize, availableSize);
 
     ImGui::End();
+    ImGui::PopStyleVar();
 }
-
 
 void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& framebufferSize) {
     ImVec2 buttonSize = ImVec2(100, 30); 

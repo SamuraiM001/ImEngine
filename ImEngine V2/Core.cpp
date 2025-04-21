@@ -27,7 +27,7 @@ void Core::ParseProjectFile(std::string folder)
 
         if (line.rfind("ProjectName=", 0) == 0) {
             m_ProjectName = line.substr(std::string("ProjectName=").length());
-            IE_LOG_SUCCESS("Project Name Scene found: " + m_ProjectName);
+            IE_LOG_SUCCESS("Project Name : " + m_ProjectName);
             foundProjectName = true;
         }
         else if (line.rfind("StartupScene=", 0) == 0) {
@@ -44,6 +44,26 @@ void Core::ParseProjectFile(std::string folder)
     }
 
 
+}
+
+void Core::WriteProjectFile()
+{
+    if (m_ProjectFile.empty()) {
+        IE_LOG_ERROR("Cannot write project file: path is empty");
+        return;
+    }
+
+    std::ofstream file(m_ProjectFile, std::ios::out | std::ios::trunc);
+    if (!file.is_open()) {
+        IE_LOG_ERROR("Failed to open project file for writing: " + m_ProjectFile);
+        return;
+    }
+
+    file << "ProjectName=" << m_ProjectName << "\n";
+    file << "StartupScene=" << m_StartScene << "\n";
+
+    IE_LOG_SUCCESS("Project file written to: " + m_ProjectFile);
+    file.close();
 }
 
 void Core::Initialize(int argc, char* argv[]) {
@@ -66,7 +86,7 @@ void Core::Initialize(int argc, char* argv[]) {
     }
 }
 
-void Core::Shutdown()
-{
+void Core::Shutdown(){
+    WriteProjectFile();
 
 }
