@@ -21,15 +21,13 @@ The ImEngine editor is where you'll interact with your game during development. 
 
 Both layers work seamlessly to provide an intuitive and productive development experience.
 
-## Project Manager (Coming Soon)
+## Project Manager
 
-The upcoming **Project Manager** feature will allow you to easily manage your game projects within ImEngine. With this tool, you will be able to:
+The **Project Manager** feature allow you to easily manage your game projects within ImEngine. With this tool, you are be able to:
 
 - Select and open existing projects
 - Create and manage new projects
 - Organize your projects for easier access and management
-
-Stay tuned for its release!
 
 ## Getting Started
 
