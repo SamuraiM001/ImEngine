@@ -27,7 +27,7 @@ Object* Scene::GetEntity(uint32_t id) {
     return nullptr;
 }
 
-const std::unordered_map<uint32_t, std::unique_ptr<Object>>& Scene::GetEntities() const {
+const std::unordered_map<uint32_t, std::shared_ptr<Object>>& Scene::GetEntities() const {
     return m_Entities;
 }
 

@@ -52,10 +52,37 @@ namespace IE {
         void Update();
         void EditorUpdate();
         
-        void AddChild(std::shared_ptr<Object> child);
+        void AddChild(Object* child);
 
+        void SetParent(Object* newParent)
+        {
+            if (m_Parent)
+            {
+                auto& siblings = m_Parent->m_Children;
+                siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
+            }
+
+            m_Parent = newParent;
+
+            if (newParent)
+                newParent->m_Children.push_back(this);
+        }
+        Object* GetParent() { return m_Parent; }
 
         void Render();
+
+        bool IsAncestorOf(IE::Object* potentialDescendant)
+        {
+            IE::Object* current = potentialDescendant;
+            while (current)
+            {
+                if (current == this)
+                    return true;
+                current = current->GetParent();
+            }
+            return false;
+        }
+
 
         // Setters 
         void SetPosition(Vector3 position) { m_Position = position; }
@@ -65,6 +92,7 @@ namespace IE {
         bool isSelected = false;
         void Select() { isSelected = true; }
         void UnSelect() { isSelected = false; }
+        std::vector<Object*>& GetChildren() { return m_Children; };
 
     public:
         std::string m_Name;
@@ -75,8 +103,9 @@ namespace IE {
         uint32_t m_ID;
         std::unordered_map<std::type_index, std::unique_ptr<Component>> m_Components;
         
+        std::vector<Object*> m_Children;
         Object* m_Parent = nullptr;
-        std::vector<std::shared_ptr<Object>> m_Children;
+
     };
 
 

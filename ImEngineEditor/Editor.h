@@ -31,6 +31,7 @@ public:
     void DrawProjectView();
     void DrawProfiler();
     void DrawLog();
+    void DrawObjectNode(IE::Object* object, int depth);
     void DrawViewportButtons(const ImVec2& availableSize, const ImVec2& framebufferSize);
 
 public:

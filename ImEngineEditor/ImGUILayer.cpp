@@ -162,6 +162,7 @@ void ImGuiLayer::OnRender() {
     rlImGuiEnd();
 }
 
+
 #pragma region ImGui Windows
 
 
@@ -350,52 +351,19 @@ void ImGuiLayer::DrawHierarchy()
 {
     ImGui::Begin("Hierarchy");
 
-    ImGui::Dummy(ImVec2(0.0f, 10.0f)); 
+    ImGui::Dummy(ImVec2(0.0f, 10.0f));
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
         m_Editor->ClearSelections();
 
-    auto& entities = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetEntities();
+    auto& objects = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetEntities();
 
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 8)); 
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 8));
 
-    for (auto& [id, entity] : entities)
+    for (auto& [id, obj] : objects)
     {
-        ImGui::PushID(id);
-
-        bool isSelected = entity->isSelected;
-
-        if (isSelected)
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.4f, 0.9f, 0.6f));
-
-        ImGui::BeginGroup();
-
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10); 
-
-        ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
-        ImGui::Text("%s", ICON_FA_GAMEPAD); 
-        ImGui::PopFont();
-        ImGui::SameLine();
-
-        if (ImGui::Selectable(entity->m_Name.c_str(), isSelected, ImGuiSelectableFlags_AllowDoubleClick, ImVec2(0, 24)))
-        {
-   
-
-            if (ImGui::IsMouseDoubleClicked(0)) {
-                
-            }
-            else {
-                m_Editor->ClearSelections();
-                m_Editor->Select(entity.get());
-            }
-        }
-
-        ImGui::EndGroup();
-
-        if (isSelected)
-            ImGui::PopStyleColor();
-
-        ImGui::PopID();
+        if (!obj->GetParent())
+            DrawObjectNode(obj.get(), 0);
     }
 
     ImGui::PopStyleVar();
@@ -549,6 +517,7 @@ void ImGuiLayer::DrawProjectView() {
     ImGui::End();
 }
 
+
 void ImGuiLayer::DrawProfiler() {
     ImGui::Begin("Profiler");
 
@@ -624,6 +593,72 @@ void ImGuiLayer::DrawLog()
 }
 
 
+
+void ImGuiLayer::DrawObjectNode(IE::Object* object, int depth)
+{
+    if (!object) return;
+
+    // Optional safeguard against excessive depth
+    if (depth > 1000)
+    {
+        ImGui::Text("Max depth exceeded!");
+        return;
+    }
+
+    ImGui::PushID(object->GetID());
+
+    ImGui::BeginGroup();
+    ImGui::Indent(depth * 20.0f);
+
+    bool isSelected = object->isSelected;
+    if (isSelected)
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.4f, 0.9f, 0.6f));
+
+    if (ImGui::Selectable(object->m_Name.c_str(), isSelected, 0, ImVec2(0, 24)))
+    {
+        m_Editor->ClearSelections();
+        m_Editor->Select(object);
+    }
+
+    if (isSelected)
+        ImGui::PopStyleColor();
+
+    // Begin drag source
+    if (ImGui::BeginDragDropSource())
+    {
+        IE::Object* ptr = object;
+        ImGui::SetDragDropPayload("OBJECT_HIERARCHY", &ptr, sizeof(IE::Object*));
+        ImGui::Text("Dragging %s", object->m_Name.c_str());
+        ImGui::EndDragDropSource();
+    }
+
+    // Accept drop
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("OBJECT_HIERARCHY"))
+        {
+            IE::Object* dropped = *(IE::Object**)payload->Data;
+
+            if (dropped && dropped != object && dropped->GetParent() != object)
+            {
+                dropped->SetParent(object); 
+            }
+        }
+
+        ImGui::EndDragDropTarget();
+    }
+
+    ImGui::Unindent(depth * 20.0f);
+    ImGui::EndGroup();
+
+    // Recursively draw children
+    for (auto& child : object->GetChildren())
+    {
+        if (child) // null check
+            DrawObjectNode(child, depth + 1);
+    }
+
+    ImGui::PopID();
+}
+
 #pragma endregion
-
-

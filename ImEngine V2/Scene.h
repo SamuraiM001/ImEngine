@@ -14,7 +14,7 @@ namespace IE {
         void DestroyEntity(uint32_t id);
 
         Object* GetEntity(uint32_t id);
-        const std::unordered_map<uint32_t, std::unique_ptr<Object>>& GetEntities() const;
+        const std::unordered_map<uint32_t, std::shared_ptr<Object>>& GetEntities() const;
 
         std::string& GetFilePath() { return m_FilePath; };
         void SetFilePath(std::string newPath) { m_FilePath = newPath; }
@@ -26,7 +26,7 @@ namespace IE {
     private:
         std::string m_FilePath;
         std::string m_Name;
-        std::unordered_map<uint32_t, std::unique_ptr<Object>> m_Entities;
+        std::unordered_map<uint32_t, std::shared_ptr<Object>> m_Entities;
         uint32_t m_NextEntityID = 1;
     };
 

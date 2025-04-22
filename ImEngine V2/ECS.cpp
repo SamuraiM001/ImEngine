@@ -34,7 +34,7 @@ void Object::EditorUpdate(){
     }
 }
 
-void IE::Object::AddChild(std::shared_ptr<Object> child) {
+void IE::Object::AddChild(Object* child) {
     child->m_Parent = this;
     m_Children.push_back(child);
 }
