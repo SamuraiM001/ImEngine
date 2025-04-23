@@ -30,63 +30,43 @@ namespace IE {
 
     class Object {
     public:
-        Object(uint32_t id) : m_ID(id) {}
+        Object(uint32_t id) : m_ID(id) , m_BillboardText(LoadTexture("textures/Logo.png")) {}
 
-        // Template to add a component by constructing it with given arguments.
         template<typename T, typename... Args>
         T* AddComponent(Args&&... args);
 
-        // Template to retrieve a component by type.
         template<typename T>
         T* GetComponent();
 
-        // Check if a component of a given type is attached.
-        bool HasComponent(const std::type_info& type) const {
-            return m_Components.find(type) != m_Components.end();
-        }
+        bool HasComponent(const std::type_info& type) const;
 
-        std::unordered_map<std::type_index, std::unique_ptr<Component>>& GetAllComponents() {
-            return m_Components;
-        }
+        std::unordered_map<std::type_index, std::unique_ptr<Component>>& GetAllComponents() {return m_Components;}
 
         void Update();
         void EditorUpdate();
         
         void AddChild(Object* child);
 
-        void SetParent(Object* newParent)
-        {
-            if (m_Parent)
-            {
-                auto& siblings = m_Parent->m_Children;
-                siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
-            }
-
-            m_Parent = newParent;
-
-            if (newParent)
-                newParent->m_Children.push_back(this);
-        }
+        void SetParent(Object* newParent);
         Object* GetParent() { return m_Parent; }
 
         void Render();
 
-        bool IsAncestorOf(IE::Object* potentialDescendant)
-        {
-            IE::Object* current = potentialDescendant;
-            while (current)
-            {
-                if (current == this)
-                    return true;
-                current = current->GetParent();
-            }
-            return false;
-        }
+        Texture2D* GetBillboardTexture() { return &m_BillboardText; };
+   
+        bool IsAncestorOf(IE::Object* potentialDescendant);
 
 
         // Setters 
         void SetPosition(Vector3 position) { m_Position = position; }
+        void SetRotation(Vector3 rotation) { m_Rotation = rotation; }
         void SetScale(Vector3 scale) { m_Scale = scale; }
+
+
+        Matrix GetWorldTransform();
+
+        Matrix GetLocalTransform();
+
 
         uint32_t GetID() const { return m_ID; }
         bool isSelected = false;
@@ -103,6 +83,7 @@ namespace IE {
         uint32_t m_ID;
         std::unordered_map<std::type_index, std::unique_ptr<Component>> m_Components;
         
+        Texture2D m_BillboardText;
         std::vector<Object*> m_Children;
         Object* m_Parent = nullptr;
 

@@ -95,24 +95,6 @@ void RenderComponent::Render() {
         m_Model = std::make_shared<Model>(LoadModelFromMesh(GenMeshCube(1, 1, 1)));
     }
 
-
-    Object& owner = *GetOwner();
-    Vector3 rot = owner.m_Rotation;
-    Vector3 pos = owner.m_Position;
-    Vector3 scale = owner.m_Scale;
-
-    Matrix transform = MatrixMultiply(
-        MatrixMultiply(
-            MatrixScale(scale.x, scale.y, scale.z),
-            MatrixRotateXYZ({
-                DEG2RAD * rot.x,
-                DEG2RAD * rot.y,
-                DEG2RAD * rot.z
-                })
-        ),
-        MatrixTranslate(pos.x, pos.y, pos.z)
-    );
-
-    m_Model->transform = transform;
+    m_Model->transform = GetOwner()->GetWorldTransform();
     DrawModel(*m_Model, Vector3Zero(), 1.0f, WHITE);
 }

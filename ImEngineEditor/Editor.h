@@ -17,7 +17,6 @@ class Editor;
 class ImGuiLayer : public IE::RenderLayer {
 public:
 
-    // Use a raw pointer (Editor owns this layer, so no ownership needed)
     ImGuiLayer(Editor* editor) : m_Editor(editor) {
         IE_ASSERT(editor != nullptr, "Editor pointer cannot be null!");
     }

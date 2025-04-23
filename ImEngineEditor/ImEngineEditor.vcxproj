@@ -139,7 +139,6 @@
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="ImGUILayer.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="ProjectManager.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Runtime.cpp" />
@@ -159,7 +158,6 @@
     <ClInclude Include="ConsoleLog.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Editor.h" />
-    <ClInclude Include="Profiler.h" />
     <ClInclude Include="ProjectManager.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Runtime.h" />
