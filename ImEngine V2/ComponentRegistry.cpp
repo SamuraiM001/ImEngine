@@ -4,6 +4,7 @@ using namespace IE;
 
 void ComponentRegistry::RegisterComponents(){
     IE::ComponentRegistry::Get().Register<RenderComponent>();
+    IE::ComponentRegistry::Get().Register<Collision>();
 }
 
 

@@ -5,6 +5,8 @@ using namespace IE;
 
 void RenderComponent::GuiRender()
 {
+    #pragma region Mesh Render
+
     ImGui::Text("Mesh");
     ImGui::PushID("MeshDrop");
 
@@ -41,7 +43,6 @@ void RenderComponent::GuiRender()
         }
         ImGui::EndDragDropTarget();
     }
-
 
     if (ImGui::BeginPopup("MeshContextMenu"))
     {
@@ -87,14 +88,25 @@ void RenderComponent::GuiRender()
     }
 
     ImGui::PopID();
-}
 
+    #pragma endregion
+
+
+
+
+}
 
 void RenderComponent::Render() {
     if (!m_Model || m_Model->meshCount == 0 || m_Model->meshes[0].vertexCount == 0) {
         m_Model = std::make_shared<Model>(LoadModelFromMesh(GenMeshCube(1, 1, 1)));
     }
 
+    
+
     m_Model->transform = GetOwner()->GetWorldTransform();
     DrawModel(*m_Model, Vector3Zero(), 1.0f, WHITE);
+}
+
+void Collision::Render()
+{
 }

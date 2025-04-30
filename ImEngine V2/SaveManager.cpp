@@ -30,7 +30,7 @@ void SaveManager::SaveSceneToAFile(Scene* scene) {
                 std::unique_ptr<IE::Component> comp = IE::ComponentRegistry::Get().CreateComponent(m_name);
 
                 // Compare the objects that the unique_ptrs are pointing to
-                if (m_name == component->StaticName()) {
+                if (m_name == component->m_Name()) {
                     name = m_name;
                     break;
                 }

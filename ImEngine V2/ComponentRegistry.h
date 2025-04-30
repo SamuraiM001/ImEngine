@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <functional>
+#include <iostream>
 #include <string>
 #include <memory>
 #include <typeindex>
@@ -19,7 +20,8 @@ namespace IE {
         // Register a component type T with its unique name.
         template<typename T>
         void Register() {
-            const std::string name = T::StaticName();
+            T temp;
+            const std::string name = temp.m_Name();
             m_ComponentTypes[name] = []() -> std::type_index {
                 return typeid(T);
                 };

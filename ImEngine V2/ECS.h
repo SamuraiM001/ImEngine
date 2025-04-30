@@ -12,8 +12,8 @@ namespace IE {
     class Component {
     private:
         Object* m_Owner = nullptr;
-        std::string m_Name;
     public:
+        virtual std::string m_Name() { return "SA"; };
         virtual ~Component() = default;
         virtual void Start() {}
         virtual void Update() {}
@@ -21,11 +21,10 @@ namespace IE {
         virtual void Render() {}
         virtual void GuiRender() {};
 
-        static std::string StaticName() { return "RenderComponent"; }
        
         void SetOwner(Object* owner) { m_Owner = owner; }
         Object* GetOwner() const { return m_Owner; }
-        std::string GetName() const { return m_Name; }
+       
     };
 
     class Object {

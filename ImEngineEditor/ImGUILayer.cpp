@@ -398,9 +398,8 @@ void ImGuiLayer::DrawProperities() {
 
             // Loop through components and show placeholder UI
             for (const auto& [typeId, component] : obj->GetAllComponents()) {
-                std::string typeName = component->StaticName();
-
-                if (!typeName.empty() && ImGui::TreeNodeEx(typeName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+                std::string typeName = component->m_Name();
+                if (ImGui::TreeNodeEx(typeName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
                     component->GuiRender();
                     ImGui::TreePop();
 
@@ -418,7 +417,7 @@ void ImGuiLayer::DrawProperities() {
                 for (const auto& [name, getType] : allComponents) {
                     std::type_index type = getType();
 
-                    if (ImGui::MenuItem(name.c_str())) {
+                    if (!name.empty() && ImGui::MenuItem(name.c_str())) {
                         std::unique_ptr<IE::Component> comp = IE::ComponentRegistry::Get().CreateComponent(name);
                         if (comp) {
                             comp->SetOwner(obj);

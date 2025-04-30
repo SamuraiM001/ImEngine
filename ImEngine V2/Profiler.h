@@ -4,6 +4,10 @@
 #include <chrono>
 #include <string>
 
+#define START_PROFILING(x) Profiler::Get().Begin(x);
+
+#define END_PROFILING(x) Profiler::Get().End(x);
+
 class Profiler
 {
 public:

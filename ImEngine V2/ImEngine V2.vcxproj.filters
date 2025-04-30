@@ -128,9 +128,6 @@
     <ClCompile Include="ComponentRegistry.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Components.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Core.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
@@ -148,6 +145,9 @@
     </ClCompile>
     <ClCompile Include="RenderLayers.cpp">
       <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Components.cpp">
+      <Filter>Source Files\ECSComponents</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
