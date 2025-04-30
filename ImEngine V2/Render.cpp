@@ -21,7 +21,7 @@ void RenderStack::Render() {
 
 void RenderStack::Update(){
     for (auto& layer : m_Layers) {
-        layer->OnUpdate();
+        layer->OnEditorUpdate();
     }
 }
 

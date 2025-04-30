@@ -12,7 +12,9 @@ namespace IE {
 		virtual void OnAttach() {};
 		virtual void OnDetach() {};
 		virtual void OnRender() {};
+		virtual void OnEditorUpdate() {};
 		virtual void OnUpdate() {};
+
 	};
 
 	class RenderStack{

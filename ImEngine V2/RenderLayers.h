@@ -27,6 +27,7 @@ public:
 
     GameLayer() {}
     void OnRender()override;
+    void OnEditorUpdate()override;
     void OnUpdate()override;
     void OnAttach()override;
     void OnDetach()override;

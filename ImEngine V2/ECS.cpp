@@ -30,14 +30,14 @@ bool Object::HasComponent(const std::type_info& type) const {
  }
 
  void Object::Update() {
-    for (auto& [type, obj] : m_Components) {
-        obj->Update();
+    for (auto& [type, comp] : m_Components) {
+        comp->Update();
     }
 }
 
 void Object::EditorUpdate(){
-    for (auto& [type, obj] : m_Components) {
-        obj->EditorUpdate();
+    for (auto& [type, comp] : m_Components) {
+        comp->EditorUpdate();
     }
 }
 
@@ -48,16 +48,17 @@ void Object::AddChild(Object* child) {
 
 void Object::SetParent(Object* newParent)
 {
-    if (m_Parent)
-    {
-        auto& siblings = m_Parent->m_Children;
-        siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
+    if (!IsAncestorOf(newParent)) {
+        if (m_Parent)
+        {
+            auto& siblings = m_Parent->m_Children;
+            siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
+        }
+        m_Parent = newParent;
+        if (newParent)
+            newParent->m_Children.push_back(this);
     }
 
-    m_Parent = newParent;
-
-    if (newParent)
-        newParent->m_Children.push_back(this);
 }
 
 void Object::Render(){
@@ -66,9 +67,9 @@ void Object::Render(){
     }
 }
 
-bool Object::IsAncestorOf(IE::Object* potentialDescendant)
+bool Object::IsAncestorOf(Object* pD)
 {
-    IE::Object* current = potentialDescendant;
+    Object* current = pD;
     while (current)
     {
         if (current == this)
@@ -78,7 +79,7 @@ bool Object::IsAncestorOf(IE::Object* potentialDescendant)
     return false;
 }
 
-Matrix IE::Object::GetWorldTransform()
+Matrix Object::GetWorldTransform()
 {
     if (m_Parent)
         return m_Parent->GetWorldTransform() * GetLocalTransform(); // Local then parent

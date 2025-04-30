@@ -37,10 +37,16 @@ void GameLayer::OnRender() {
 
 }
 
-void GameLayer::OnUpdate() {
+void GameLayer::OnEditorUpdate() {
 
     for (auto& [type, obj] : GetScene()->GetEntities()) {
         obj->EditorUpdate();
+    }
+}
+
+void GameLayer::OnUpdate(){
+    for (auto& [type, obj] : GetScene()->GetEntities()) {
+        obj->Update();
     }
 }
 

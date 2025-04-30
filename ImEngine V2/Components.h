@@ -16,13 +16,17 @@ namespace IE {
         std::shared_ptr<Material> m_Mat = nullptr;
     };
 
-    class Collision : public Component {
+    class CollisionComponent : public Component {
     public:
-        void Render() override;
-        std::string m_Name() override { return "TestComp"; };
+        std::string m_Name() override { return "CollisionComponent"; };
     private:
     };
-
+    class MovementComponent : public Component {
+    public:
+        void Update() override;
+        std::string m_Name() override { return "MovementComponent"; };
+    private:
+    };
     class ScriptComponent :public Component {
     protected:
         std::string filePath;

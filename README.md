@@ -36,3 +36,9 @@ To get started with ImEngine, simply clone the repository and follow the setup i
 1. Clone the repository:
    ```bash
      git clone https://github.com/SamuraiM001/ImEngine.git
+
+2. Install Raylib:
+  Install Raylib using NuGet Packages with VS.
+
+3. Run and Check :)
+    

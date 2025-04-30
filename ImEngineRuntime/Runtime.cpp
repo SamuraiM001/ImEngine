@@ -17,7 +17,7 @@ RUNTIME_API bool IsRuntimeRequestingExit() {
 }
 
 
-RUNTIME_API void InitRuntime(std::string ProjectPath) {
+RUNTIME_API void InitRuntime(std::string ProjectPath) { 
     if (s_WindowInitialized.load()) {
         IE_LOG("Runtime already initialized, skipping InitWindow.");
         s_RequestingExit = false;
@@ -26,7 +26,7 @@ RUNTIME_API void InitRuntime(std::string ProjectPath) {
     IE::ComponentRegistry::Get().RegisterComponents();
 
     IE_LOG(ProjectPath);
-    const char* fakeArgv[] = { "ImEngineEditor.exe",ProjectPath.c_str()};
+    const char* fakeArgv[] = { "ImEngineEditor.exe", ProjectPath.c_str()};
 
     m_Core.Initialize(2, const_cast<char**>(fakeArgv));
 

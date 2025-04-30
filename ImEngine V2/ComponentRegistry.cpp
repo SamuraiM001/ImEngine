@@ -3,8 +3,9 @@
 using namespace IE;
 
 void ComponentRegistry::RegisterComponents(){
-    IE::ComponentRegistry::Get().Register<RenderComponent>();
-    IE::ComponentRegistry::Get().Register<Collision>();
+    ComponentRegistry::Get().Register<RenderComponent>();
+    ComponentRegistry::Get().Register<CollisionComponent>();
+    ComponentRegistry::Get().Register<MovementComponent>();
 }
 
 

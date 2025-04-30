@@ -107,6 +107,9 @@ void RenderComponent::Render() {
     DrawModel(*m_Model, Vector3Zero(), 1.0f, WHITE);
 }
 
-void Collision::Render()
+
+void MovementComponent::Update()
 {
+    GetOwner()->m_Position = Vector3Add(GetOwner()->m_Position, Vector3({ 0.1f * GetFrameTime(),0.1f * GetFrameTime(),0.1f * GetFrameTime()}));
+
 }
