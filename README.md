@@ -35,4 +35,4 @@ To get started with ImEngine, simply clone the repository and follow the setup i
 
 1. Clone the repository:
    ```bash
-     git clone https://github.com/your_username/ImEngine.git
+     git clone https://github.com/SamuraiM001/ImEngine.git
