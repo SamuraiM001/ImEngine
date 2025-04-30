@@ -125,7 +125,7 @@ void ImGuiLayer::OnDetach(){
     ImGui::SaveIniSettingsToDisk(io.IniFilename);
 }
 
-void ImGuiLayer::OnUpdate() {
+void ImGuiLayer::OnEditorUpdate() {
     HandleBasicInput();
 }
 
@@ -136,6 +136,8 @@ void ImGuiLayer::HandleBasicInput() {
             auto x = selected[0]; // Save before clearing
             m_Editor->ClearSelections();
             m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->DestroyEntity(x->GetID());
+        }
+        else {
         }
 
     }

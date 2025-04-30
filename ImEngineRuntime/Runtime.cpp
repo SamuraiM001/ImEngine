@@ -48,8 +48,6 @@ RUNTIME_API void TickRuntime(float deltaTime) {
         s_RequestingExit = true;
     }
 
-    UpdateCamera(m_GameLayer.Get3DCamera(), CAMERA_THIRD_PERSON);
-
     BeginDrawing();
 
     m_GameLayer.OnUpdate();

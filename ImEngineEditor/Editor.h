@@ -39,7 +39,7 @@ public:
     void OnRender() override;
     void OnAttach() override;
     void OnDetach() override;
-    void OnUpdate() override;
+    void OnEditorUpdate() override;
 private:    
     ResourceManager m_ResourceManager;
     Editor* m_Editor; 

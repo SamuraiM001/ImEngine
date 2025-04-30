@@ -16,7 +16,7 @@ void GameLayer::OnRender() {
     BeginMode3D(*Get3DCamera());
     DrawGrid(20, 1.0f);
 
-    Profiler::Get().Begin("Scene Render Objects");
+    Profiler::Get().Begin("Rendering Scene: "+GetScene()->GetName() );
     for (auto& [type, obj] : GetScene()->GetEntities()) {
         rlEnableDepthTest();
         DrawBillboard(m_3DCamera, *obj->GetBillboardTexture(), obj->m_Position,  .5f,RED );
@@ -25,7 +25,7 @@ void GameLayer::OnRender() {
         
         obj->Render();
     }
-    Profiler::Get().End("Scene Render Objects");
+    Profiler::Get().End("Rendering Scene: " + GetScene()->GetName());
 
     EndMode3D();
 
@@ -45,6 +45,8 @@ void GameLayer::OnEditorUpdate() {
 }
 
 void GameLayer::OnUpdate(){
+    if(GetScene()->GetCurrentCamera() != nullptr)
+    m_3DCamera.position = GetScene()->GetCurrentCamera()->m_Position;
     for (auto& [type, obj] : GetScene()->GetEntities()) {
         obj->Update();
     }

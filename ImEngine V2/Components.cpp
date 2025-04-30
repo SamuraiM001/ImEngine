@@ -113,3 +113,11 @@ void MovementComponent::Update()
     GetOwner()->m_Position = Vector3Add(GetOwner()->m_Position, Vector3({ 0.1f * GetFrameTime(),0.1f * GetFrameTime(),0.1f * GetFrameTime()}));
 
 }
+void CameraComponent::GuiRender() {
+    if (ImGui::Button("Set Camera To Main")) {
+        this->isMain = true;
+
+    }
+
+    ImGui::Text("Is Main: %s", isMain ? "Yes" : "No");
+}

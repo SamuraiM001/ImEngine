@@ -1,6 +1,7 @@
 #pragma once
 #include "ECS.h"
 #include "SaveManager.h"
+#include "CameraManager.h"
 #include <unordered_map>
 #include <memory>
 #include <cstdint>
@@ -13,6 +14,8 @@ namespace IE {
         Object& CreateEntity();
         void DestroyEntity(uint32_t id);
 
+        void UnParent(uint32_t id);
+
         Object* GetEntity(uint32_t id);
         const std::unordered_map<uint32_t, std::shared_ptr<Object>>& GetEntities() const;
 
@@ -23,9 +26,12 @@ namespace IE {
         void SetName(std::string Name) { m_Name = Name; }
 
         void Clear() { m_Entities.clear(); m_Name = ""; m_FilePath = ""; m_NextEntityID = 1; };
+
+        IE::Object* GetCurrentCamera() { return m_CamHolder; }
     private:
         std::string m_FilePath;
         std::string m_Name;
+        IE::Object* m_CamHolder = nullptr;
         std::unordered_map<uint32_t, std::shared_ptr<Object>> m_Entities;
         uint32_t m_NextEntityID = 1;
     };

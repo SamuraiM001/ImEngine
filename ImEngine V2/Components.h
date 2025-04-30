@@ -16,11 +16,20 @@ namespace IE {
         std::shared_ptr<Material> m_Mat = nullptr;
     };
 
+    class CameraComponent : public Component {
+    public:
+        void GuiRender() override;
+        std::string m_Name() override { return "CameraComponent"; };
+        bool isMain = false;
+    };
+
+
     class CollisionComponent : public Component {
     public:
         std::string m_Name() override { return "CollisionComponent"; };
     private:
     };
+
     class MovementComponent : public Component {
     public:
         void Update() override;
