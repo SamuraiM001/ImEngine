@@ -20,7 +20,6 @@ namespace IE {
     public:
         void GuiRender() override;
         std::string m_Name() override { return "CameraComponent"; };
-        bool isMain = false;
     };
 
 

@@ -8,6 +8,7 @@
 namespace IE {
 
     class Object;
+    class Scene;
 
     class Component {
     private:
@@ -72,6 +73,14 @@ namespace IE {
         void Select() { isSelected = true; }
         void UnSelect() { isSelected = false; }
         std::vector<Object*>& GetChildren() { return m_Children; };
+
+    public:
+
+        void SetScene(Scene* scene) { m_Scene = scene; }
+        Scene* GetScene() const { return m_Scene; }
+
+    private:
+        Scene* m_Scene = nullptr;
 
     public:
         std::string m_Name;

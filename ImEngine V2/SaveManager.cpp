@@ -26,23 +26,10 @@ void SaveManager::SaveSceneToAFile(Scene* scene) {
         bool first = true;
         for (const auto& [_, component] : entity->GetAllComponents()) {
             std::string name = "";
-            for (const auto& [m_name, getType] : IE::ComponentRegistry::Get().GetAll()) {
-                std::unique_ptr<IE::Component> comp = IE::ComponentRegistry::Get().CreateComponent(m_name);
-
-                // Compare the objects that the unique_ptrs are pointing to
-                if (m_name == component->m_Name()) {
-                    name = m_name;
-                    break;
-                }
-            }
-
-            if (name.empty()) {
-                IE_LOG_WARN("Skipping unknown component during save");
-                continue;
-            }
 
             if (!first) out << ", ";
-            out << name;
+            out << component->m_Name();
+            if (component->m_Name() == "CameraComponent" && scene->GetCurrentCamera()->GetID() == id)out << "+";
             first = false;
         }
 
@@ -102,18 +89,29 @@ void SaveManager::LoadSceneFromAFile(Scene* scene, std::string filePath) {
             while (std::getline(comps, compName, ',')) {
                 compName.erase(std::remove(compName.begin(), compName.end(), ' '), compName.end());
 
-                // Lookup type function
+                bool isMainCamera = false;
+                if (!compName.empty() && compName.back() == '+') {
+                    isMainCamera = true;
+                    compName.pop_back();
+                }
+
                 auto it = allComponents.find(compName);
                 if (it == allComponents.end()) {
                     continue;
                 }
 
-                std::type_index type = it->second(); // Call the function to get the type_index
+                std::type_index type = it->second(); 
                 std::unique_ptr<IE::Component> comp = IE::ComponentRegistry::Get().CreateComponent(compName);
                 if (comp) {
                     comp->SetOwner(currentEntity);
                     currentEntity->GetAllComponents()[type] = std::move(comp);
+
+                    if (compName == "CameraComponent" && isMainCamera) {
+                        scene->SetCurrentCamera(currentEntity);
+                    }
                 }
+
+
             }
 
         }

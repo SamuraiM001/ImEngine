@@ -115,9 +115,6 @@ void MovementComponent::Update()
 }
 void CameraComponent::GuiRender() {
     if (ImGui::Button("Set Camera To Main")) {
-        this->isMain = true;
-
-    }
-
-    ImGui::Text("Is Main: %s", isMain ? "Yes" : "No");
+        GetOwner()->GetScene()->SetCurrentCamera(GetOwner());
+    };
 }

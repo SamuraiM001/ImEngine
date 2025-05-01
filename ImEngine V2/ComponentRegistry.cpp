@@ -6,6 +6,8 @@ void ComponentRegistry::RegisterComponents(){
     ComponentRegistry::Get().Register<RenderComponent>();
     ComponentRegistry::Get().Register<CollisionComponent>();
     ComponentRegistry::Get().Register<MovementComponent>();
+    ComponentRegistry::Get().Register<CameraComponent>();
+
 }
 
 

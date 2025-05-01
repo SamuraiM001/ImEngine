@@ -10,6 +10,7 @@ Object& Scene::CreateEntity() {
     uint32_t id = m_NextEntityID++;
     auto object = std::make_unique<Object>(id);
     object->m_Name = "NewObject" + std::to_string(id);
+    object->SetScene(this);
     Object& ref = *object;
     m_Entities[id] = std::move(object);
     return ref;

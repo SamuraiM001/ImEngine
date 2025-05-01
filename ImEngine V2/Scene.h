@@ -1,7 +1,6 @@
 #pragma once
 #include "ECS.h"
 #include "SaveManager.h"
-#include "CameraManager.h"
 #include <unordered_map>
 #include <memory>
 #include <cstdint>
@@ -28,6 +27,7 @@ namespace IE {
         void Clear() { m_Entities.clear(); m_Name = ""; m_FilePath = ""; m_NextEntityID = 1; };
 
         IE::Object* GetCurrentCamera() { return m_CamHolder; }
+        void SetCurrentCamera(Object* _p) { m_CamHolder = _p; };
     private:
         std::string m_FilePath;
         std::string m_Name;
