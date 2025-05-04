@@ -251,19 +251,7 @@ void ImGuiLayer::DrawViewport() {
     }
 
     if (ImGui::BeginPopup("TabContextMenu")) {
-        static char rename_buffer[128] = "";
-        ImGui::SetKeyboardFocusHere();
-        if (ImGui::InputText("##rename", rename_buffer, IM_ARRAYSIZE(rename_buffer),
-            ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
-            name = rename_buffer;
-            m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->SetName(name);
-            ImGui::CloseCurrentPopup();
-        }
-
-        if (ImGui::IsKeyPressed(ImGuiKey_Escape) ||
-            (!ImGui::IsItemHovered() && ImGui::IsMouseClicked(0))) {
-            ImGui::CloseCurrentPopup();
-        }
+        DrawSceneSettings();
         ImGui::EndPopup();
     }
 
@@ -314,6 +302,7 @@ void ImGuiLayer::DrawViewport() {
     ImGui::End();
     ImGui::PopStyleVar();
 }
+
 
 void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& framebufferSize) {
     ImVec2 buttonSize = ImVec2(100, 30); 
@@ -388,26 +377,36 @@ void ImGuiLayer::DrawProperities() {
                 obj->m_Name = nameBuffer;
             }
 
-            ImGui::Separator();
-            ImGui::Text("Transform");
-
-            ImGui::DragFloat3("Position",    &obj->m_Position.x, 0.1f);
-            ImGui::DragFloat3("Rotation", &obj->m_Rotation.x, 0.1f);
-            ImGui::DragFloat3("Scale", &obj->m_Scale.x, 0.1f);
-
-            ImGui::Separator();
-            ImGui::Text("Components");
 
             // Loop through components and show placeholder UI
             for (const auto& [typeId, component] : obj->GetAllComponents()) {
                 std::string typeName = component->m_Name();
-                if (ImGui::TreeNodeEx(typeName.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5, 5));
+                ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(50, 60, 80, 255));   // Near-black
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(30, 40, 60, 255));   // Dark blue
+                ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 180, 255, 255));  // Neon blue
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(220, 240, 255, 255)); // Light blue text
+                ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 180, 150, 80));   // Glowing border
+                ImGui::PushStyleColor(ImGuiCol_BorderShadow, IM_COL32(0, 0, 0, 0));        // No shadow
+
+                // Optional: Selected state (override when needed)
+                // ImGui::PushStyleColor(ImGuiCol_Header,      IM_COL32(226, 47, 75, 255)); // Red if selected
+                if (ImGui::CollapsingHeader(typeName.c_str())) {
+                    ImGui::PopStyleVar(1);
+                    ImGui::PopStyleColor(6);
+
+                    ImGui::Dummy({ 3,3 });
                     component->GuiRender();
-                    ImGui::TreePop();
+                    ImGui::Dummy({ 5,5 });
+
+                }
+                else {
+                    ImGui::PopStyleVar(1);
+                    ImGui::PopStyleColor(6);
 
                 }
             }
-
+            ImGui::Dummy({ 5,5 });
             if (ImGui::Button("Add Component")) {
                 ImGui::OpenPopup("AddComponentPopup");
             }
@@ -423,6 +422,7 @@ void ImGuiLayer::DrawProperities() {
                         std::unique_ptr<IE::Component> comp = IE::ComponentRegistry::Get().CreateComponent(name);
                         if (comp) {
                             comp->SetOwner(obj);
+                            comp->OnAttach();
                             obj->GetAllComponents()[type] = std::move(comp);
                         }
                     }
@@ -591,6 +591,46 @@ void ImGuiLayer::DrawLog()
     ImGui::PopItemWidth();
 
     ImGui::End();
+}
+
+
+void ImGuiLayer::DrawSceneSettings(){
+    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once); // Set initial size
+    ImGui::Begin("Scene Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize); // Allow resize
+
+    static char rename_buffer[128] = "";
+    ImGui::Text("Scene Name:");
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::InputText("##SceneName", rename_buffer, IM_ARRAYSIZE(rename_buffer),
+        ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
+        m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->SetName(rename_buffer);
+    }
+
+    ImGui::Separator();
+
+    // Camera Component List
+    IE::Scene* scene = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene();
+    ImGui::Text("Camera Objects:");
+    ImGui::BeginChild("CameraList", ImVec2(0, 150), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
+
+    for (auto& [id, object] : scene->GetEntities()) {
+        if (object->GetComponent<IE::CameraComponent>() != nullptr) {
+            bool isCurrent = (scene->GetCurrentCamera() && scene->GetCurrentCamera()->GetID() == id);
+            std::string label = object->m_Name + " (ID: " + std::to_string(object->GetID()) + ") " + (isCurrent ? " (StartUp)" : "");
+
+            if (ImGui::Selectable(label.c_str(), isCurrent)) {
+                scene->SetCurrentCamera(object.get());
+            }
+        }
+    }
+
+    ImGui::EndChild();
+
+    // Escape key closes the popup
+    if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+        ImGui::CloseCurrentPopup();
+
+    ImGui::End(); // Scene Settings
 }
 
 

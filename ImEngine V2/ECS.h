@@ -3,6 +3,7 @@
 #include <memory>
 #include <typeindex>
 #include <string>
+#include "Base.h"
 #include <raylib.h> 
 
 namespace IE {
@@ -22,10 +23,13 @@ namespace IE {
         virtual void Render() {}
         virtual void GuiRender() {};
 
+        virtual void OnAttach() {};
+        virtual void OnDetach() {};
        
         void SetOwner(Object* owner) { m_Owner = owner; }
         Object* GetOwner() const { return m_Owner; }
-       
+
+        bool m_isActive = true;
     };
 
     class Object {
@@ -33,14 +37,33 @@ namespace IE {
         Object(uint32_t id) : m_ID(id) , m_BillboardText(LoadTexture("textures/Logo.png")) {}
 
         template<typename T, typename... Args>
-        T* AddComponent(Args&&... args);
+        T* AddComponent(Args&&... args) {
+            static_assert(std::is_base_of<Component, T>::value,
+                "Template type T must derive from Component");
+
+            std::unique_ptr<T> comp = std::make_unique<T>(std::forward<Args>(args)...);
+
+            comp->SetOwner(this);
+            comp->OnAttach();
+            T* rawPtr = comp.get();
+            m_Components[typeid(T)] = std::move(comp);
+            return rawPtr;
+        }
 
         template<typename T>
-        T* GetComponent();
-
-        bool HasComponent(const std::type_info& type) const;
+        T* GetComponent() {
+            auto it = m_Components.find(typeid(T));
+            if (it != m_Components.end()) {
+                return dynamic_cast<T*>(it->second.get());
+            }
+            T s;
+            IE_LOG_ERROR("Could find a component named: "  << s.m_Name() << " on the object: " << m_Name << "(ID: " << std::to_string(GetID()) << ")");
+            return nullptr;
+        }
 
         std::unordered_map<std::type_index, std::unique_ptr<Component>>& GetAllComponents() {return m_Components;}
+
+
 
         void Update();
         void EditorUpdate();
@@ -57,15 +80,6 @@ namespace IE {
         bool IsAncestorOf(IE::Object* potentialDescendant);
 
 
-        // Setters 
-        void SetPosition(Vector3 position) { m_Position = position; }
-        void SetRotation(Vector3 rotation) { m_Rotation = rotation; }
-        void SetScale(Vector3 scale) { m_Scale = scale; }
-
-
-        Matrix GetWorldTransform();
-
-        Matrix GetLocalTransform();
 
 
         uint32_t GetID() const { return m_ID; }
@@ -84,9 +98,6 @@ namespace IE {
 
     public:
         std::string m_Name;
-        Vector3 m_Position = { 0, 0, 0 };
-        Vector3 m_Rotation = { 0, 0, 0 };
-        Vector3 m_Scale = { 1, 1, 1 };
     private:
         uint32_t m_ID;
         std::unordered_map<std::type_index, std::unique_ptr<Component>> m_Components;

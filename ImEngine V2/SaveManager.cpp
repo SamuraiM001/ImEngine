@@ -18,9 +18,6 @@ void SaveManager::SaveSceneToAFile(Scene* scene) {
         out << "Entity\n";
         out << "  Name \"" << entity->m_Name << "\"\n";
         out << std::fixed << std::setprecision(3);
-        out << "  Position " << entity->m_Position.x << " " << entity->m_Position.y << " " << entity->m_Position.z << "\n";
-        out << "  Rotation " << entity->m_Rotation.x << " " << entity->m_Rotation.y << " " << entity->m_Rotation.z << "\n";
-        out << "  Scale " << entity->m_Scale.x << " " << entity->m_Scale.y << " " << entity->m_Scale.z << "\n";
 
         out << "  Components ";
         bool first = true;
@@ -32,6 +29,13 @@ void SaveManager::SaveSceneToAFile(Scene* scene) {
             if (component->m_Name() == "CameraComponent" && scene->GetCurrentCamera()->GetID() == id)out << "+";
             first = false;
         }
+
+        if(entity->GetComponent<TransformComponent>()){
+            out << "  Position " << entity->GetComponent<TransformComponent>()->m_Position.x << " " << entity->GetComponent<TransformComponent>()->m_Position.y << " " << entity->GetComponent<TransformComponent>()->m_Position.z << "\n";
+            out << "  Rotation " << entity->GetComponent<TransformComponent>()->m_Rotation.x << " " << entity->GetComponent<TransformComponent>()->m_Rotation.y << " " << entity->GetComponent<TransformComponent>()->m_Rotation.z << "\n";
+            out << "  Scale " << entity->GetComponent<TransformComponent>()->m_Scale.x << " " << entity->GetComponent<TransformComponent>()->m_Scale.y << " " << entity->GetComponent<TransformComponent>()->m_Scale.z << "\n";
+        }
+
 
         out << "\n";
     }
@@ -71,15 +75,6 @@ void SaveManager::LoadSceneFromAFile(Scene* scene, std::string filePath) {
             iss >> std::quoted(name);
             currentEntity->m_Name = name;
         }
-        else if (token == "Position" && currentEntity) {
-            iss >> currentEntity->m_Position.x >> currentEntity->m_Position.y >> currentEntity->m_Position.z;
-        }
-        else if (token == "Rotation" && currentEntity) {
-            iss >> currentEntity->m_Rotation.x >> currentEntity->m_Rotation.y >> currentEntity->m_Rotation.z;
-        }
-        else if (token == "Scale" && currentEntity) {
-            iss >> currentEntity->m_Scale.x >> currentEntity->m_Scale.y >> currentEntity->m_Scale.z;
-        }
         else if (token == "Components" && currentEntity) {
             std::string componentLine = line.substr(line.find("Components") + 10);
             std::istringstream comps(componentLine);
@@ -114,6 +109,18 @@ void SaveManager::LoadSceneFromAFile(Scene* scene, std::string filePath) {
 
             }
 
+        }
+
+
+        else if (token == "Position" && currentEntity && currentEntity->GetComponent<TransformComponent>()) {
+
+            iss >> currentEntity->GetComponent<TransformComponent>()->m_Position.x >> currentEntity->GetComponent<TransformComponent>()->m_Position.y >> currentEntity->GetComponent<TransformComponent>()->m_Position.z;
+        }
+        else if (token == "Rotation" && currentEntity && currentEntity->GetComponent<TransformComponent>()) {
+            iss >> currentEntity->GetComponent<TransformComponent>()->m_Rotation.x >> currentEntity->GetComponent<TransformComponent>()->m_Rotation.y >> currentEntity->GetComponent<TransformComponent>()->m_Rotation.z;
+        }
+        else if (token == "Scale" && currentEntity && currentEntity->GetComponent<TransformComponent>()) {
+            iss >> currentEntity->GetComponent<TransformComponent>()->m_Scale.x >> currentEntity->GetComponent<TransformComponent>()->m_Scale.y >> currentEntity->GetComponent<TransformComponent>()->m_Scale.z;
         }
     }
 

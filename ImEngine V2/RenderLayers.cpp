@@ -2,6 +2,8 @@
 #include "SaveManager.h"
 #include "rlgl.h"
 #include "Profiler.h"
+#include <raymath.h>
+#include "Components.h"
 
 #pragma region GameRendering
 
@@ -17,12 +19,7 @@ void GameLayer::OnRender() {
     DrawGrid(20, 1.0f);
 
     Profiler::Get().Begin("Rendering Scene: "+GetScene()->GetName() );
-    for (auto& [type, obj] : GetScene()->GetEntities()) {
-        rlEnableDepthTest();
-        DrawBillboard(m_3DCamera, *obj->GetBillboardTexture(), obj->m_Position,  .5f,RED );
-        
-        rlDisableDepthTest();
-        
+    for (auto& [type, obj] : GetScene()->GetEntities()) { 
         obj->Render();
     }
     Profiler::Get().End("Rendering Scene: " + GetScene()->GetName());
@@ -44,21 +41,26 @@ void GameLayer::OnEditorUpdate() {
     }
 }
 
-void GameLayer::OnUpdate(){
-    if(GetScene()->GetCurrentCamera() != nullptr)
-    m_3DCamera.position = GetScene()->GetCurrentCamera()->m_Position;
+void GameLayer::OnUpdate() {
+    if (GetScene()->GetCurrentCamera() != nullptr) {
+        auto* camera = GetScene()->GetCurrentCamera();
+
+        m_3DCamera.position = camera->GetComponent<IE::TransformComponent>()->m_Position;
+        m_3DCamera.target = Vector3Add(camera->GetComponent<IE::TransformComponent>()->m_Position, camera->GetComponent<IE::TransformComponent>()->GetForwardVector());
+        m_3DCamera.up = camera->GetComponent<IE::TransformComponent>()->GetUpVector();
+        m_3DCamera.fovy = 70.0f;
+    }
+
     for (auto& [type, obj] : GetScene()->GetEntities()) {
         obj->Update();
     }
 }
-
-void GameLayer::OnAttach() {
+ void GameLayer::OnAttach() {
     IE::SaveManager::LoadSceneFromAFile(GetScene(), IE::Core::m_WorkFolder + IE::Core::m_StartScene);
 }
 
 void GameLayer::OnDetach() {
     IE::SaveManager::SaveSceneToAFile(GetScene());
-
 }
 
 #pragma endregion

@@ -8,5 +8,6 @@
 #include "SaveManager.h"
 #include "ComponentRegistry.h"
 #include "RenderLayers.h"
+#include "Components.h"
 
 #include "raymath.h"

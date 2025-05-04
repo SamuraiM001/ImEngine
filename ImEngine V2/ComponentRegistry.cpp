@@ -3,11 +3,11 @@
 using namespace IE;
 
 void ComponentRegistry::RegisterComponents(){
+    ComponentRegistry::Get().Register<TransformComponent>();
     ComponentRegistry::Get().Register<RenderComponent>();
     ComponentRegistry::Get().Register<CollisionComponent>();
     ComponentRegistry::Get().Register<MovementComponent>();
     ComponentRegistry::Get().Register<CameraComponent>();
-
 }
 
 
