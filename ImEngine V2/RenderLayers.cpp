@@ -18,10 +18,16 @@ void GameLayer::OnRender() {
     BeginMode3D(*Get3DCamera());
     DrawGrid(20, 1.0f);
 
-    Profiler::Get().Begin("Rendering Scene: "+GetScene()->GetName() );
+    Profiler::Get().Begin("Rendering Scene: " + GetScene()->GetName());
+    
+    GetScene()->GetShaderRegistry()->BeginShading();
+   
     for (auto& [type, obj] : GetScene()->GetEntities()) { 
         obj->Render();
     }
+    
+    GetScene()->GetShaderRegistry()->EndShading();
+    
     Profiler::Get().End("Rendering Scene: " + GetScene()->GetName());
 
     EndMode3D();
@@ -50,11 +56,16 @@ void GameLayer::OnUpdate() {
         m_3DCamera.up = camera->GetComponent<IE::TransformComponent>()->GetUpVector();
         m_3DCamera.fovy = 70.0f;
     }
-
+    else {
+        ClearBackground(BLACK);
+        DrawText("NO CAMERA FOUND! RENDERING WITH BASIC RAYLIB CAMERA",0,0, 26, WHITE);
+    }
     for (auto& [type, obj] : GetScene()->GetEntities()) {
         obj->Update();
     }
+
 }
+
  void GameLayer::OnAttach() {
     IE::SaveManager::LoadSceneFromAFile(GetScene(), IE::Core::m_WorkFolder + IE::Core::m_StartScene);
 }

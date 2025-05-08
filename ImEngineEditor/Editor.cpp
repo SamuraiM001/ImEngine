@@ -35,8 +35,11 @@ void Editor::Initialize(int argc, char* argv[]) {
 
 void Editor::Run() {
     while (!WindowShouldClose()) {
+
         Profiler::Get().BeginFrame();
+
         BeginDrawing();
+
         m_rStack.Update();
         m_rStack.Render();
 
@@ -46,9 +49,13 @@ void Editor::Run() {
 
 void Editor::Shutdown() {
     m_RuntimeManager.Unload();
+
     IE::Log::Get().Unhook();
+
     m_Core.Shutdown();
+
     m_rStack.Free();
+
     CloseWindow();
 }
 

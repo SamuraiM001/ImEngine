@@ -389,17 +389,38 @@ void ImGuiLayer::DrawProperities() {
                 ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 180, 150, 80));   // Glowing border
                 ImGui::PushStyleColor(ImGuiCol_BorderShadow, IM_COL32(0, 0, 0, 0));        // No shadow
 
-                // Optional: Selected state (override when needed)
-                // ImGui::PushStyleColor(ImGuiCol_Header,      IM_COL32(226, 47, 75, 255)); // Red if selected
                 if (ImGui::CollapsingHeader(typeName.c_str())) {
                     ImGui::PopStyleVar(1);
                     ImGui::PopStyleColor(6);
 
-                    ImGui::Dummy({ 3,3 });
-                    component->GuiRender();
-                    ImGui::Dummy({ 5,5 });
+                    // Start a horizontal group
+                    ImGui::BeginGroup(); // For alignment safety
 
+                    // Draw a colored square (like a margin)
+                    ImVec2 squareSize = { 4.0f, 0.0f }; // width: 4px, height auto
+                    ImVec2 cursor = ImGui::GetCursorScreenPos();
+                    ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    float height = ImGui::GetFrameHeight() * 2.5f; // adjust for height
+
+                    drawList->AddRectFilled(
+                        cursor,
+                        ImVec2(cursor.x + squareSize.x, cursor.y + height),
+                        IM_COL32(100, 200, 255, 255), // light blue-ish
+                        2.0f // rounded corners
+                    );
+
+                    // Offset the next content to the right
+                    ImGui::SetCursorScreenPos(ImVec2(cursor.x + squareSize.x + 6.0f, cursor.y));
+
+                    ImGui::BeginGroup();
+                    ImGui::Dummy({ 1, 3 });
+                    component->GuiRender();
+                    ImGui::Dummy({ 1, 5 });
+                    ImGui::EndGroup();
+
+                    ImGui::EndGroup();
                 }
+
                 else {
                     ImGui::PopStyleVar(1);
                     ImGui::PopStyleColor(6);

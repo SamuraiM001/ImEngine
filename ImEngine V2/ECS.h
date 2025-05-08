@@ -23,6 +23,9 @@ namespace IE {
         virtual void Render() {}
         virtual void GuiRender() {};
 
+        virtual void Serialize(std::ostream& out) {}
+        virtual void Deserialize(std::ifstream& in) {};
+
         virtual void OnAttach() {};
         virtual void OnDetach() {};
        

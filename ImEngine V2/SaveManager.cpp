@@ -19,24 +19,13 @@ void SaveManager::SaveSceneToAFile(Scene* scene) {
         out << "  Name \"" << entity->m_Name << "\"\n";
         out << std::fixed << std::setprecision(3);
 
-        out << "  Components ";
-        bool first = true;
+        out << "  Components " << '\n';
         for (const auto& [_, component] : entity->GetAllComponents()) {
-            std::string name = "";
 
-            if (!first) out << ", ";
-            out << component->m_Name();
-            if (component->m_Name() == "CameraComponent" && scene->GetCurrentCamera()->GetID() == id)out << "+";
-            first = false;
+            out << "    " << component->m_Name() << '\n';
+            component->Serialize(out);
         }
-
-        if(entity->GetComponent<TransformComponent>()){
-            out << "  Position " << entity->GetComponent<TransformComponent>()->m_Position.x << " " << entity->GetComponent<TransformComponent>()->m_Position.y << " " << entity->GetComponent<TransformComponent>()->m_Position.z << "\n";
-            out << "  Rotation " << entity->GetComponent<TransformComponent>()->m_Rotation.x << " " << entity->GetComponent<TransformComponent>()->m_Rotation.y << " " << entity->GetComponent<TransformComponent>()->m_Rotation.z << "\n";
-            out << "  Scale " << entity->GetComponent<TransformComponent>()->m_Scale.x << " " << entity->GetComponent<TransformComponent>()->m_Scale.y << " " << entity->GetComponent<TransformComponent>()->m_Scale.z << "\n";
-        }
-
-
+        out << "  EndComponents";
         out << "\n";
     }
 
@@ -76,41 +65,36 @@ void SaveManager::LoadSceneFromAFile(Scene* scene, std::string filePath) {
             currentEntity->m_Name = name;
         }
         else if (token == "Components" && currentEntity) {
-            std::string componentLine = line.substr(line.find("Components") + 10);
-            std::istringstream comps(componentLine);
-            std::string compName;
-            const auto& allComponents = IE::ComponentRegistry::Get().GetAll();
+            while (std::getline(in, line)) {
+                std::istringstream compStream(line);
+                std::string compName;
+                compStream >> compName;
 
-            while (std::getline(comps, compName, ',')) {
-                compName.erase(std::remove(compName.begin(), compName.end(), ' '), compName.end());
+                if (compName == "EndComponents")break;
 
-                bool isMainCamera = false;
-                if (!compName.empty() && compName.back() == '+') {
-                    isMainCamera = true;
-                    compName.pop_back();
-                }
+
+                const auto& allComponents = IE::ComponentRegistry::Get().GetAll();
 
                 auto it = allComponents.find(compName);
+
                 if (it == allComponents.end()) {
                     continue;
                 }
 
-                std::type_index type = it->second(); 
+
                 std::unique_ptr<IE::Component> comp = IE::ComponentRegistry::Get().CreateComponent(compName);
-                if (comp) {
-                    comp->SetOwner(currentEntity);
-                    currentEntity->GetAllComponents()[type] = std::move(comp);
-
-                    if (compName == "CameraComponent" && isMainCamera) {
-                        scene->SetCurrentCamera(currentEntity);
-                    }
+                if (!comp) {
+                    IE_LOG_WARN("Unknown component during deserialization: " + compName);
+                    continue;
                 }
+                std::type_index type = it->second();
 
+                comp->SetOwner(currentEntity);
 
+                currentEntity->GetAllComponents()[type] = std::move(comp);
+                currentEntity->GetAllComponents()[type]->Deserialize(in);
             }
-
         }
-
 
         else if (token == "Position" && currentEntity && currentEntity->GetComponent<TransformComponent>()) {
 
