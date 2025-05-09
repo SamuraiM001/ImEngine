@@ -8,7 +8,8 @@ namespace IE {
     public:
 
         void GuiRender() override;
-
+        void Serialize(std::ostream& out) override;
+        void Deserialize(std::ifstream& in)override;
 
         void SetPosition(Vector3 position) { m_Position = position; }
         void SetRotation(Vector3 rotation) { m_Rotation = rotation; }

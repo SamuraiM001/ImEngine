@@ -42,6 +42,17 @@ void TransformComponent::GuiRender()
 
 }
 
+void TransformComponent::Serialize(std::ostream& out)  {
+    out << "      Position " << m_Position.x << " " << m_Position.y << " " << m_Position.z << "\n";
+    out << "      Rotation " << m_Rotation.x << " " << m_Rotation.y << " " << m_Rotation.z << "\n";
+    out << "      Scale " << m_Scale.x << " " << m_Scale.y << " " << m_Scale.z << "\n";
+}
+
+
+void TransformComponent::Deserialize(std::ifstream& in){
+
+}
+
 Matrix TransformComponent::GetWorldTransform()
 {
     if (GetOwner() != nullptr && GetOwner()->GetParent())

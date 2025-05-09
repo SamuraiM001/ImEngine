@@ -378,49 +378,48 @@ void ImGuiLayer::DrawProperities() {
             }
 
 
-            // Loop through components and show placeholder UI
             for (const auto& [typeId, component] : obj->GetAllComponents()) {
                 std::string typeName = component->m_Name();
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5, 5));
-                ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(50, 60, 80, 255));   // Near-black
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(30, 40, 60, 255));   // Dark blue
-                ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 180, 255, 255));  // Neon blue
-                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(220, 240, 255, 255)); // Light blue text
-                ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 180, 150, 80));   // Glowing border
-                ImGui::PushStyleColor(ImGuiCol_BorderShadow, IM_COL32(0, 0, 0, 0));        // No shadow
+                ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(50, 60, 80, 255));
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(30, 40, 60, 255));
+                ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 180, 255, 255));
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(220, 240, 255, 255));
+                ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(0, 180, 150, 80)); 
+                ImGui::PushStyleColor(ImGuiCol_BorderShadow, IM_COL32(0, 0, 0, 0)); 
 
                 if (ImGui::CollapsingHeader(typeName.c_str())) {
                     ImGui::PopStyleVar(1);
                     ImGui::PopStyleColor(6);
 
-                    // Start a horizontal group
-                    ImGui::BeginGroup(); // For alignment safety
+                    const float leftMargin = 20.0f;
+                    const float barWidth = 4.0f;
+                    const float barSpacing = 2.0f;
 
-                    // Draw a colored square (like a margin)
-                    ImVec2 squareSize = { 4.0f, 0.0f }; // width: 4px, height auto
-                    ImVec2 cursor = ImGui::GetCursorScreenPos();
-                    ImDrawList* drawList = ImGui::GetWindowDrawList();
-                    float height = ImGui::GetFrameHeight() * 2.5f; // adjust for height
 
-                    drawList->AddRectFilled(
-                        cursor,
-                        ImVec2(cursor.x + squareSize.x, cursor.y + height),
-                        IM_COL32(100, 200, 255, 255), // light blue-ish
-                        2.0f // rounded corners
-                    );
-
-                    // Offset the next content to the right
-                    ImGui::SetCursorScreenPos(ImVec2(cursor.x + squareSize.x + 6.0f, cursor.y));
+                    ImVec2 startCursor = ImGui::GetCursorScreenPos();
 
                     ImGui::BeginGroup();
-                    ImGui::Dummy({ 1, 3 });
+
+                    ImGui::Dummy({ 1, 4 });
+                    ImGui::Indent(leftMargin);
                     component->GuiRender();
-                    ImGui::Dummy({ 1, 5 });
-                    ImGui::EndGroup();
+                    ImGui::Dummy({ 1, 4 });
 
                     ImGui::EndGroup();
+
+                    ImVec2 endCursor = ImGui::GetCursorScreenPos();
+
+                    ImVec2 barStart = ImVec2(startCursor.x - barSpacing - barWidth, startCursor.y);
+                    ImVec2 barEnd = ImVec2(barStart.x + barWidth, endCursor.y);
+
+                    ImGui::GetWindowDrawList()->AddRectFilled(
+                        barStart,
+                        barEnd,
+                        IM_COL32(100, 200, 255, 255),
+                        2.0f
+                    );
                 }
-
                 else {
                     ImGui::PopStyleVar(1);
                     ImGui::PopStyleColor(6);
