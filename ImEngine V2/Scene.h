@@ -26,6 +26,7 @@ namespace IE {
         void SetName(std::string Name) { m_Name = Name; }
 
         void Clear() { m_Entities.clear(); m_Name = ""; m_FilePath = ""; m_NextEntityID = 1; };
+
         IE::ShaderRegistry* GetShaderRegistry() { return &m_ShaderRegistry; }
 
         IE::Object* GetCurrentCamera() { return m_CamHolder; }

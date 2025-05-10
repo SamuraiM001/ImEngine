@@ -24,7 +24,7 @@ namespace IE {
         virtual void GuiRender() {};
 
         virtual void Serialize(std::ostream& out) {}
-        virtual void Deserialize(std::ifstream& in) {};
+        virtual void Deserialize(const std::string& in) {};
 
         virtual void OnAttach() {};
         virtual void OnDetach() {};
@@ -59,8 +59,6 @@ namespace IE {
             if (it != m_Components.end()) {
                 return dynamic_cast<T*>(it->second.get());
             }
-            T s;
-            IE_LOG_ERROR("Could find a component named: "  << s.m_Name() << " on the object: " << m_Name << "(ID: " << std::to_string(GetID()) << ")");
             return nullptr;
         }
 

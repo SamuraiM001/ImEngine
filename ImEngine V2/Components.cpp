@@ -1,6 +1,6 @@
 ﻿#include "Components.h"
 #include <filesystem>
-
+#include <sstream>
 using namespace IE;
 
 
@@ -49,9 +49,23 @@ void TransformComponent::Serialize(std::ostream& out)  {
 }
 
 
-void TransformComponent::Deserialize(std::ifstream& in){
+void TransformComponent::Deserialize(const std::string& line) {
+    std::istringstream ss(line);
+    std::string prefix;
+    ss >> prefix;
 
+    if (prefix == "Position") {
+        ss >> m_Position.x >> m_Position.y >> m_Position.z;
+    }
+    else if (prefix == "Rotation") {
+        ss >> m_Rotation.x >> m_Rotation.y >> m_Rotation.z;
+    }
+    else if (prefix == "Scale") {
+        ss >> m_Scale.x >> m_Scale.y >> m_Scale.z;
+    }
 }
+
+
 
 Matrix TransformComponent::GetWorldTransform()
 {
@@ -89,6 +103,31 @@ void RenderComponent::OnAttach(){
     }
 }
 
+void RenderComponent::Serialize(std::ostream& out){
+    out << "      ModelPath " << m_ModelPath << '\n';
+}
+
+void RenderComponent::Deserialize(const std::string& in) {
+    std::istringstream ss(in);
+    std::string prefix;
+    ss >> prefix;
+
+    if (prefix == "ModelPath") {
+        std::string pathPart;
+        m_ModelPath.clear();
+        while (ss >> pathPart) {
+            if (!m_ModelPath.empty()) m_ModelPath += " ";
+            m_ModelPath += pathPart;
+        }
+
+        Model rawModel = LoadModel(m_ModelPath.c_str());
+        if (rawModel.meshCount == 0 && !m_ModelPath.empty()) {
+            IE_LOG_ERROR("Failed to load model: {}", m_ModelPath);
+        }
+        m_Model = std::make_shared<Model>(rawModel);
+    }
+}
+
 void RenderComponent::GuiRender()
 {
     #pragma region Mesh Render
@@ -115,6 +154,7 @@ void RenderComponent::GuiRender()
                 if (extension == ".obj")
                 {
                     m_ModelPath = droppedPath;
+                    IE_LOG(m_ModelPath);
                     Model rawModel = LoadModel(m_ModelPath.c_str());
                     if (rawModel.meshCount == 0) {
                         IE_LOG_ERROR("Failed to load model: {}", m_ModelPath);
@@ -252,4 +292,29 @@ void CameraComponent::GuiRender() {
 
     ImGui::PopID(); 
 }
+
+void CameraComponent::OnAttach() {
+    if (GetOwner()->GetComponent<TransformComponent>() == nullptr) {
+        GetOwner()->AddComponent<TransformComponent>();
+    }
+}
+
+void CameraComponent::Serialize(std::ostream& out){
+
+    out << "      IsMainCam " << (GetOwner()->GetScene()->GetCurrentCamera() == GetOwner()) << '\n';
+}
+void CameraComponent::Deserialize(const std::string& in)
+{
+    std::istringstream ss(in);
+    std::string prefix;
+    ss >> prefix;
+    if (prefix == "IsMainCam") {
+        bool t;
+        ss >> t;
+        if (t && GetOwner() != nullptr) {
+            GetOwner()->GetScene()->SetCurrentCamera(GetOwner());
+        }
+    }
+}
+
 #pragma endregion

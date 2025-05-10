@@ -8,8 +8,9 @@ namespace IE {
     public:
 
         void GuiRender() override;
+
         void Serialize(std::ostream& out) override;
-        void Deserialize(std::ifstream& in)override;
+        void Deserialize(const std::string& in)override;
 
         void SetPosition(Vector3 position) { m_Position = position; }
         void SetRotation(Vector3 rotation) { m_Rotation = rotation; }
@@ -37,8 +38,13 @@ namespace IE {
     public:
 
         void OnAttach() override;
+
+        void Serialize(std::ostream& out) override;
+        void Deserialize(const std::string& in)override;
+
         void GuiRender() override;
         void Render() override;
+
         std::string m_Name() override { return "RenderComponent"; };
     private:
         std::string m_ModelPath;
@@ -49,6 +55,12 @@ namespace IE {
     class CameraComponent : public Component {
     public:
         void GuiRender() override;
+
+        void OnAttach() override;
+
+        void Serialize(std::ostream& out) override;
+        void Deserialize(const std::string& in)override;
+
         std::string m_Name() override { return "CameraComponent"; };
         const float& GetFOV() {
             return FOV;

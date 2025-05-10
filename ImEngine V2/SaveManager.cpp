@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <sstream>
 #include "ImEngine.h"
+#include <typeindex>
 
 using namespace IE;
 
@@ -65,37 +66,54 @@ void SaveManager::LoadSceneFromAFile(Scene* scene, std::string filePath) {
             currentEntity->m_Name = name;
         }
         else if (token == "Components" && currentEntity) {
+            std::unique_ptr<IE::Component> currentComponent = nullptr;
+            std::type_index currentType = typeid(Component); 
+
+
             while (std::getline(in, line)) {
-                std::istringstream compStream(line);
-                std::string compName;
-                compStream >> compName;
+                // Trim whitespace
+                line.erase(line.find_last_not_of(" \t") + 1);
+                line.erase(0, line.find_first_not_of(" \t"));
 
-                if (compName == "EndComponents")break;
+                if (line.empty()) continue;
+                if (line == "EndComponents") break;
 
+                std::istringstream testStream(line);
+                std::string testName;
+                testStream >> testName;
 
                 const auto& allComponents = IE::ComponentRegistry::Get().GetAll();
+                auto it = allComponents.find(testName);
 
-                auto it = allComponents.find(compName);
+                if (it != allComponents.end()) {
 
-                if (it == allComponents.end()) {
-                    continue;
+                    if (currentComponent) {
+                        currentComponent->SetOwner(currentEntity);
+                        currentEntity->GetAllComponents()[currentType] = std::move(currentComponent);
+                    }
+
+                    currentComponent = IE::ComponentRegistry::Get().CreateComponent(testName);
+                    if (!currentComponent) {
+                        IE_LOG_WARN("Failed to create component: " + testName);
+                        continue;
+                    }
+                    currentType = it->second();
+                    currentComponent->SetOwner(currentEntity);  // Set first
                 }
-
-
-                std::unique_ptr<IE::Component> comp = IE::ComponentRegistry::Get().CreateComponent(compName);
-                if (!comp) {
-                    IE_LOG_WARN("Unknown component during deserialization: " + compName);
-                    continue;
+                else if (currentComponent) {
+                    currentComponent->Deserialize(line);
                 }
-                std::type_index type = it->second();
+                else {
+                    IE_LOG_WARN("Component data without component declaration: " + line);
+                }
+            }
 
-                comp->SetOwner(currentEntity);
-
-                currentEntity->GetAllComponents()[type] = std::move(comp);
-                currentEntity->GetAllComponents()[type]->Deserialize(in);
+            // Add the last component if it exists
+            if (currentComponent) {
+                currentComponent->SetOwner(currentEntity);
+                currentEntity->GetAllComponents()[currentType] = std::move(currentComponent);
             }
         }
-
         else if (token == "Position" && currentEntity && currentEntity->GetComponent<TransformComponent>()) {
 
             iss >> currentEntity->GetComponent<TransformComponent>()->m_Position.x >> currentEntity->GetComponent<TransformComponent>()->m_Position.y >> currentEntity->GetComponent<TransformComponent>()->m_Position.z;
