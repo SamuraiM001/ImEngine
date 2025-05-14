@@ -42,6 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="resources\shaders\main.fs" />
+    <None Include="resources\shaders\main.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h">

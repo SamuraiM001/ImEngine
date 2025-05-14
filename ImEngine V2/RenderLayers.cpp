@@ -66,7 +66,7 @@ void GameLayer::OnUpdate() {
 
 }
 
- void GameLayer::OnAttach() {
+void GameLayer::OnAttach() {
     IE::SaveManager::LoadSceneFromAFile(GetScene(), IE::Core::m_WorkFolder + IE::Core::m_StartScene);
 }
 

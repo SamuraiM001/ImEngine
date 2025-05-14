@@ -5,21 +5,14 @@ using namespace IE;
 
 
 
-
- // Returns the up vector of a transform given its rotation matrix
-
-
-
  void Object::Update() {
     for (auto& [type, comp] : m_Components) {
-        if(comp->m_isActive)
         comp->Update();
     }
 }
 
 void Object::EditorUpdate(){
     for (auto& [type, comp] : m_Components) {
-        if (comp->m_isActive)
         comp->EditorUpdate();
     }
 }

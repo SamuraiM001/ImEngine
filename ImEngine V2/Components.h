@@ -8,7 +8,7 @@ namespace IE {
     public:
 
         void GuiRender() override;
-
+        void Render() override;
         void Serialize(std::ostream& out) override;
         void Deserialize(const std::string& in)override;
 
@@ -21,6 +21,12 @@ namespace IE {
 
         Matrix GetLocalTransform();
 
+        Vector3 GetWorldPosition();
+
+        Vector3 GetWorldScale();
+
+        Vector3 GetWorldRotationEuler();
+
 
         Vector3 GetForwardVector();
 
@@ -32,6 +38,8 @@ namespace IE {
         Vector3 m_Position = { 0, 0, 0 };
         Vector3 m_Rotation = { 0, 0, 0 };
         Vector3 m_Scale = { 1, 1, 1 };
+
+        void DrawGizmos();
     };
 
     class RenderComponent : public Component {
@@ -46,9 +54,10 @@ namespace IE {
         void Render() override;
 
         std::string m_Name() override { return "RenderComponent"; };
+        std::shared_ptr<Model> m_Model = nullptr;
+
     private:
         std::string m_ModelPath;
-        std::shared_ptr<Model> m_Model = nullptr;
         std::shared_ptr<Material> m_Mat = nullptr;
     };
 
@@ -83,12 +92,20 @@ namespace IE {
     private:
     };
 
+    
     class ScriptComponent :public Component {
     protected:
         std::string filePath;
+        std::string ComponentName;
     public:
-        static std::string StaticName() { }
+        std::string m_Name() override { return "ScriptComponent :" + ComponentName; };
 
+        void Update()override;
+        void Render()override;
+        void Start() override;
+        void GuiRender() override;
 
+        void Serialize(std::ostream& out) override;
+        void Deserialize(const std::string& in)override;
     };
 }

@@ -35,11 +35,106 @@ Vector3 TransformComponent::GetRightVector() {
 
 void TransformComponent::GuiRender()
 {
-    ImGui::DragFloat3("Position", &m_Position.x, 0.1f);
-    ImGui::DragFloat3("Rotation", &m_Rotation.x, 0.1f);
-    ImGui::DragFloat3("Scale", &m_Scale.x, 0.1f);
+    float controlWidth = 90.0f;
+
+    ImGui::Text("Position");
+    ImGui::PushID("Position");
+
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+    ImGui::SetNextItemWidth(controlWidth);
+    ImGui::DragFloat("X", &m_Position.x, 0.1f);
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+    ImGui::SetNextItemWidth(controlWidth);
+    ImGui::DragFloat("Y", &m_Position.y, 0.1f);
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 255, 255));
+    ImGui::SetNextItemWidth(controlWidth);
+    ImGui::DragFloat("Z", &m_Position.z, 0.1f);
+    ImGui::PopStyleColor();
+
+    ImGui::PopID();
 
 
+
+    ImGui::Text("Rotation");
+    ImGui::PushID("Rotation");
+
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+    ImGui::SetNextItemWidth(controlWidth);
+    ImGui::DragFloat("X", &m_Rotation.x, 0.1f);
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+    ImGui::SetNextItemWidth(controlWidth);
+    ImGui::DragFloat("Y", &m_Rotation.y, 0.1f);
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 255, 255));
+    ImGui::SetNextItemWidth(controlWidth);
+    ImGui::DragFloat("Z", &m_Rotation.z, 0.1f);
+    ImGui::PopStyleColor();
+
+    ImGui::PopID();
+
+    ImGui::Text("Scale");
+    ImGui::PushID("Scale");
+
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+    ImGui::SetNextItemWidth(controlWidth);
+    ImGui::DragFloat("X", &m_Scale.x, 0.1f);
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+    ImGui::SetNextItemWidth(controlWidth);
+    ImGui::DragFloat("Y", &m_Scale.y, 0.1f);
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 255, 255));
+    ImGui::SetNextItemWidth(controlWidth);
+    ImGui::DragFloat("Z", &m_Scale.z, 0.1f);
+    ImGui::PopStyleColor();
+
+
+
+    ImGui::PopID();
+
+
+
+}
+
+void TransformComponent::Render(){
+
+    if (GetOwner()->isSelected) {
+        DrawGizmos();
+    }
+
+}
+
+void TransformComponent::DrawGizmos() {
+    if (!GetOwner()) return;
+
+
+    Matrix world = GetWorldTransform();
+
+
+    // Draw gizmo axes
+    Vector3 origin = Vector3Transform(Vector3Zero(), world);
+    Vector3 right = origin + GetRightVector();
+    Vector3 up = origin + GetUpVector();
+    Vector3 forward = origin + GetForwardVector();
+
+    DrawLine3D(origin, right, RED);
+    DrawLine3D(origin, up, GREEN);
+    DrawLine3D(origin, forward, BLUE);
 }
 
 void TransformComponent::Serialize(std::ostream& out)  {
@@ -66,10 +161,9 @@ void TransformComponent::Deserialize(const std::string& line) {
 }
 
 
-
 Matrix TransformComponent::GetWorldTransform()
 {
-    if (GetOwner() != nullptr && GetOwner()->GetParent())
+    if (GetOwner() != nullptr && GetOwner()->GetParent() && GetOwner()->GetParent()->GetComponent<TransformComponent>() != nullptr)
         return GetOwner()->GetParent()->GetComponent<TransformComponent>()->GetWorldTransform() * GetLocalTransform(); // Local then parent
     else
         return GetLocalTransform();
@@ -93,6 +187,20 @@ Matrix TransformComponent::GetLocalTransform()
     Matrix localTransform = MatrixMultiply(MatrixMultiply(scaleMatrix, rotationMatrix), translationMatrix);
     return localTransform;
 }
+
+
+Vector3 TransformComponent::GetWorldPosition() {
+    return Vector3Transform(Vector3Zero(), GetWorldTransform());
+}
+
+Vector3 TransformComponent::GetWorldScale() {
+    return m_Scale; // Could be expanded for parent scale in hierarchy
+}
+
+Vector3 TransformComponent::GetWorldRotationEuler() {
+    return m_Rotation; // Assumes no parent influence
+}
+
 
 #pragma endregion
 
@@ -217,12 +325,9 @@ void RenderComponent::GuiRender()
 
     #pragma endregion
 
-
-
-
 }
 
-void RenderComponent::Render() {
+void RenderComponent::Render() { 
     if (!m_Model || m_Model->meshCount == 0 || m_Model->meshes[0].vertexCount == 0) {
         m_Model = std::make_shared<Model>(LoadModelFromMesh(GenMeshCube(1, 1, 1)));
     }
@@ -236,7 +341,10 @@ void RenderComponent::Render() {
         IE_LOG_ERROR("Render Component On Object:" +  GetOwner()->m_Name + "(ID: " + std::to_string(GetOwner()->GetID()) + ") cannot be rendered because there is no transform component" );
     }
 
+
 }
+
+
 #pragma endregion
 
 #pragma region Movement C
@@ -318,3 +426,33 @@ void CameraComponent::Deserialize(const std::string& in)
 }
 
 #pragma endregion
+
+#pragma region Script C
+
+
+
+#pragma endregion
+
+void ScriptComponent::Update()
+{
+}
+
+void ScriptComponent::Render()
+{
+}
+
+void ScriptComponent::Start(){
+
+}
+
+void ScriptComponent::GuiRender(){
+
+}
+
+void ScriptComponent::Serialize(std::ostream& out){
+
+}
+
+void ScriptComponent::Deserialize(const std::string& in){
+
+}

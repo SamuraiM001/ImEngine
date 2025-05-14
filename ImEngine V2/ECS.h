@@ -14,6 +14,7 @@ namespace IE {
     class Component {
     private:
         Object* m_Owner = nullptr;
+        uint32_t m_ID;
     public:
         virtual std::string m_Name() { return "SA"; };
         virtual ~Component() = default;
@@ -31,6 +32,7 @@ namespace IE {
        
         void SetOwner(Object* owner) { m_Owner = owner; }
         Object* GetOwner() const { return m_Owner; }
+
 
         bool m_isActive = true;
     };
@@ -102,15 +104,11 @@ namespace IE {
     private:
         uint32_t m_ID;
         std::unordered_map<std::type_index, std::unique_ptr<Component>> m_Components;
-        
+
         Texture2D m_BillboardText;
         std::vector<Object*> m_Children;
         Object* m_Parent = nullptr;
-
     };
-
-
-    // Template to add a component by constructing it with given arguments.
 
 
 
