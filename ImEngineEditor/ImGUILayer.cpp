@@ -299,13 +299,12 @@ void ImGuiLayer::DrawMainDockspace() {
         if (ImGui::IsWindowHovered() && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !isMouseLocked) {
             ImVec2 imageStart = ImGui::GetCursorScreenPos(); // top-left of the image
             Vector2 mouse = GetMousePosition();
-
             float localX = mouse.x - imageStart.x;
             float localY = mouse.y - imageStart.y;
 
             Vector2 d = {
-                (localX / availableSize.x) * GetRenderWidth(),
-                (localY / availableSize.y) * GetRenderHeight()
+                (localX / availableSize.x) * GetRenderWidth() ,
+                (localY / availableSize.y) * GetRenderHeight() 
             };
 
             Ray ray = GetMouseRay(d, *m_Editor->GetRenderStack()->GetLayer<GameLayer>()->Get3DCamera());

@@ -2,6 +2,7 @@
 
 #include "ECS.h"
 #include "ImEngine.h"
+#include <imgui_widgets.cpp>
 namespace IE {
 
     class TransformComponent : public Component {
@@ -90,6 +91,15 @@ namespace IE {
         void Update() override;
         std::string m_Name() override { return "MovementComponent"; };
     private:
+    };
+
+    class InputComponent : public Component {
+    public:
+        bool GetKey(int KeyCode) {return IsKeyDown(KeyCode);}
+        bool GetMouseButton(int button) {return IsMouseButtonDown(button);}
+        Vector2 GetMousePos() {return GetMousePosition();};
+        std::string m_Name() override { return "InputComponent"; };
+        
     };
 
     

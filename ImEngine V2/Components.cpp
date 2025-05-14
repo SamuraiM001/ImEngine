@@ -427,18 +427,20 @@ void CameraComponent::Deserialize(const std::string& in)
 
 #pragma endregion
 
-#pragma region Script C
+#pragma region Input C
 
+bool InputComponent::GetKey(int KeyCode){
 
-
+    return IsKeyDown(KeyCode);
+}
 #pragma endregion
 
-void ScriptComponent::Update()
-{
+#pragma region Script C
+
+void ScriptComponent::Update(){
 }
 
-void ScriptComponent::Render()
-{
+void ScriptComponent::Render(){
 }
 
 void ScriptComponent::Start(){
@@ -456,3 +458,8 @@ void ScriptComponent::Serialize(std::ostream& out){
 void ScriptComponent::Deserialize(const std::string& in){
 
 }
+
+
+#pragma endregion
+
+
