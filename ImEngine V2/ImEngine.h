@@ -9,5 +9,7 @@
 #include "ComponentRegistry.h"
 #include "RenderLayers.h"
 #include "Components.h"
+#include "ScriptingEngine.h"
 
 #include "raymath.h"
+

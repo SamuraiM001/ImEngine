@@ -66,6 +66,14 @@ void GameLayer::OnUpdate() {
 
 }
 
+void GameLayer::OnStart() {
+
+    for (auto& [type, obj] : GetScene()->GetEntities()) {
+        obj->Start();
+    }
+
+}
+
 void GameLayer::OnAttach() {
     IE::SaveManager::LoadSceneFromAFile(GetScene(), IE::Core::m_WorkFolder + IE::Core::m_StartScene);
 }

@@ -8,6 +8,7 @@ void ComponentRegistry::RegisterComponents(){
     ComponentRegistry::Get().Register<CollisionComponent>();
     ComponentRegistry::Get().Register<MovementComponent>();
     ComponentRegistry::Get().Register<CameraComponent>();
+    ComponentRegistry::Get().Register<ScriptComponent>();
 }
 
 

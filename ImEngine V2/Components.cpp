@@ -292,7 +292,7 @@ void RenderComponent::GuiRender()
             {
                 Model rawModel = LoadModel(m_ModelPath.c_str());
                 if (rawModel.meshCount == 0) {
-                    IE_LOG_ERROR("Failed to reload model: {}", m_ModelPath);
+                    IE_LOG_ERROR("Failed to reload model: {}" << m_ModelPath);
                 }
                 m_Model = std::make_shared<Model>(rawModel);
             }
@@ -427,37 +427,129 @@ void CameraComponent::Deserialize(const std::string& in)
 
 #pragma endregion
 
-#pragma region Input C
-
-bool InputComponent::GetKey(int KeyCode){
-
-    return IsKeyDown(KeyCode);
-}
-#pragma endregion
-
 #pragma region Script C
 
+void ScriptComponent::LoadScript()
+{
+    size_t lastSlash = filePath.find_last_of("/\\");
+    size_t dot = filePath.find_last_of(".");
+    if (lastSlash == std::string::npos) lastSlash = -1;
+    if (dot == std::string::npos || dot <= lastSlash) dot = filePath.length();
+
+    ComponentName = filePath.substr(lastSlash + 1, dot - lastSlash - 1);
+    
+    auto& lua = IE::ScriptingEngine::Get().GetState();
+    lua.script_file(filePath);
+
+
+
+    m_GlobalVariables.clear();
+
+    for (const auto& kv : lua.globals()) {
+        std::string name = kv.first.as<std::string>();
+        sol::type t = kv.second.get_type();
+
+        // Ignore standard libs and internal stuff
+        if (name[0] == ('_') ||
+            name == "math" || name == "string" || name == "table" ||
+            name == "io" || name == "os" || name == "coroutine" ||
+            name == "debug" || name == "package" || name == "base" ||
+            name == "bit32" || name == "utf8")
+            continue;
+
+        // You can also filter out functions if you only want variables
+        if (t == sol::type::function)
+            continue;
+
+        m_GlobalVariables[name] = kv.second;
+    }
+
+    lua["self"] = GetOwner();
+
+
+    // Optional: Extract script-defined functions
+    m_OnStart = lua["OnStart"];
+    m_OnUpdate = lua["OnUpdate"];
+    
+    IE_LOG_SUCCESS("Loaded " << filePath <<" successfully ");
+
+}
+
 void ScriptComponent::Update(){
+    if (m_OnUpdate.valid()) m_OnUpdate();
+
 }
 
 void ScriptComponent::Render(){
 }
 
 void ScriptComponent::Start(){
-
+    if (m_OnStart.valid()) m_OnStart();
 }
 
-void ScriptComponent::GuiRender(){
+void ScriptComponent::GuiRender() {
 
+    if (filePath.empty()) {
+        // Show drop zone
+        ImGui::Text("Drop Lua script here:");
+        ImGui::Dummy({ 0.0f, 5.0f });
+
+        ImVec2 size = ImVec2(ImGui::GetContentRegionAvail().x, 40.0f);
+        ImGui::Button("##DropZone", size);
+
+        if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_FILE")) {
+                std::string droppedPath = (const char*)payload->Data;
+
+                std::string extension = std::filesystem::path(droppedPath).extension().string();
+                std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+                if (extension != ".lua") { IE_LOG_ERROR("Couldn't add file with " << extension << " extension. Please use Lua Scripts"); }
+
+                else{
+                    filePath = droppedPath;
+                    LoadScript(); 
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Only *.lua files are allowed.");
+    }
+    else {
+        ImGui::Text("Script:");
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.2f, 0.8f, 1.0f, 1.0f), filePath.c_str());
+
+        if (ImGui::Button("Reload Script")) {
+            LoadScript();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Remove Script")) {
+            filePath.clear();
+            m_OnStart = sol::function();
+            m_OnUpdate = sol::function();
+        }
+
+        ImGui::Separator();
+
+        for (auto& [name, value] : m_GlobalVariables) {
+            ImGui::Text("%s", name.c_str());
+        }
+
+    }
 }
 
-void ScriptComponent::Serialize(std::ostream& out){
-
+void ScriptComponent::Serialize(std::ostream& out) {
+    out << filePath << std::endl;
 }
 
-void ScriptComponent::Deserialize(const std::string& in){
-
+void ScriptComponent::Deserialize(const std::string& in) {
+    filePath = in;
+    LoadScript();
 }
+
 
 
 #pragma endregion

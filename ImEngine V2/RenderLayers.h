@@ -31,6 +31,7 @@ public:
     void OnUpdate()override;
     void OnAttach()override;
     void OnDetach()override;
+    void OnStart();
 };
 
 

@@ -17,6 +17,12 @@ void Object::EditorUpdate(){
     }
 }
 
+void Object::Start(){
+    for (auto& [type, comp] : m_Components) {
+        comp->Start();
+    }
+}
+
 void Object::AddChild(Object* child) {
     child->m_Parent = this;
     m_Children.push_back(child);

@@ -1,8 +1,7 @@
 ﻿#pragma once
-
-#include "ECS.h"
 #include "ImEngine.h"
-#include <imgui_widgets.cpp>
+#include <sol/sol.hpp>
+
 namespace IE {
 
     class TransformComponent : public Component {
@@ -102,20 +101,31 @@ namespace IE {
         
     };
 
-    
     class ScriptComponent :public Component {
     protected:
         std::string filePath;
         std::string ComponentName;
     public:
-        std::string m_Name() override { return "ScriptComponent :" + ComponentName; };
+        std::string m_Name() override { return "ScriptComponent"; };
+
+        void LoadScript();
+
+        void SetScriptFile(std::string fileP) { filePath = fileP; LoadScript(); };
 
         void Update()override;
         void Render()override;
         void Start() override;
         void GuiRender() override;
 
+        sol::function m_OnStart;
+        sol::function m_OnUpdate;
+        sol::function m_OnRender;
+
+
         void Serialize(std::ostream& out) override;
         void Deserialize(const std::string& in)override;
+
+
+        std::unordered_map<std::string, sol::object> m_GlobalVariables;
     };
 }

@@ -66,9 +66,6 @@
     <ClInclude Include="Core.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="ImEngine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Base.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
@@ -100,6 +97,9 @@
       <Filter>Header Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="ShaderRegistry.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptingEngine.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
@@ -153,6 +153,9 @@
       <Filter>Source Files\ECSComponents</Filter>
     </ClCompile>
     <ClCompile Include="ShaderRegistry.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptingEngine.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
   </ItemGroup>

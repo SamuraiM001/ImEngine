@@ -76,7 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;C:\Users\User\source\repos\ImEngine V2\ImEngineEditor\nfd\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;C:\Users\User\source\repos\ImEngine V2\ImEngineEditor\nfd\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -124,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -173,11 +173,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\raylib.5.5.0\build\native\raylib.targets" Condition="Exists('..\packages\raylib.5.5.0\build\native\raylib.targets')" />
+    <Import Project="..\packages\lua.5.4.7.2\build\native\Lua.targets" Condition="Exists('..\packages\lua.5.4.7.2\build\native\Lua.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\raylib.5.5.0\build\native\raylib.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\raylib.5.5.0\build\native\raylib.targets'))" />
+    <Error Condition="!Exists('..\packages\lua.5.4.7.2\build\native\Lua.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\lua.5.4.7.2\build\native\Lua.targets'))" />
   </Target>
 </Project>

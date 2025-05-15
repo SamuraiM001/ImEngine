@@ -12,7 +12,10 @@ void Editor::Initialize(int argc, char* argv[]) {
     
     //Registering CurrentComponents
     IE::ComponentRegistry::RegisterComponents();
-    
+
+    //Starting Scripting Engine
+    IE::ScriptingEngine::Get().Initialize();
+
     //Initializing Core
     m_Core.Initialize(argc, argv);
 

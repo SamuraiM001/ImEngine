@@ -18,6 +18,7 @@ namespace IE {
     public:
         virtual std::string m_Name() { return "SA"; };
         virtual ~Component() = default;
+
         virtual void Start() {}
         virtual void Update() {}
         virtual void EditorUpdate() {}
@@ -70,6 +71,7 @@ namespace IE {
 
         void Update();
         void EditorUpdate();
+        void Start();
         
         void AddChild(Object* child);
 

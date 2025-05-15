@@ -33,11 +33,16 @@ RUNTIME_API void InitRuntime(std::string ProjectPath) {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(600, 600, "Runtime View");
 
+    IE::ScriptingEngine::Get().Initialize();
+
     IE::SaveManager::LoadSceneFromAFile(m_GameLayer.GetScene(),IE::Core::m_WorkFolder + IE::Core::m_StartScene);
     m_GameLayer.m_Runtime = true;
 
     s_WindowInitialized = true; 
     s_RequestingExit = false;
+
+
+    m_GameLayer.OnStart();
 }
 
 

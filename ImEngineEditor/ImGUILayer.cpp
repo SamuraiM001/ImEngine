@@ -4,6 +4,10 @@
 #include "ImEngine.h"
 #include "Profiler.h"
 #include "Constants.h"
+#include <filesystem>
+
+#pragma region ImGui Setup
+
 
 void ImGuiLayer::SetupImGuiStyle(){
 
@@ -165,6 +169,8 @@ void ImGuiLayer::OnRender() {
 }
 
 
+#pragma endregion
+
 #pragma region ImGui Windows
 
 
@@ -244,100 +250,100 @@ void ImGuiLayer::DrawMainDockspace() {
 }
 
 
-    void ImGuiLayer::DrawViewport() {
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        std::string name = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetName();
-        if (name == "") name = "Scene View";
-        ImGui::Begin((name + "###SceneViewDock").c_str(), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+void ImGuiLayer::DrawViewport() {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    std::string name = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetName();
+    if (name == "") name = "Scene View";
+    ImGui::Begin((name + "###SceneViewDock").c_str(), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) &&
-            ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-            ImGui::OpenPopup("TabContextMenu");
-        }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) &&
+        ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+        ImGui::OpenPopup("TabContextMenu");
+    }
 
-        if (ImGui::BeginPopup("TabContextMenu")) {
-            DrawSceneSettings();
-            ImGui::EndPopup();
-        }
+    if (ImGui::BeginPopup("TabContextMenu")) {
+        DrawSceneSettings();
+        ImGui::EndPopup();
+    }
 
-        // Handle mouse lock for camera control
-        if (ImGui::IsWindowHovered() && IsMouseButtonPressed(MOUSE_RIGHT_BUTTON) && !isMouseLocked) {
-            DisableCursor();
-            ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
-            ImGui::SetWindowFocus();
-            isMouseLocked = true;
-        }
+    // Handle mouse lock for camera control
+    if (ImGui::IsWindowHovered() && IsMouseButtonPressed(MOUSE_RIGHT_BUTTON) && !isMouseLocked) {
+        DisableCursor();
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
+        ImGui::SetWindowFocus();
+        isMouseLocked = true;
+    }
 
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered())
-            m_Editor->ClearSelections();
-
-
-
-        if (IsMouseButtonReleased(MOUSE_RIGHT_BUTTON) && isMouseLocked) {
-            EnableCursor();
-            ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
-            isMouseLocked = false;
-        }
-
-        if (isMouseLocked)
-            m_Editor->HandleCameraMovementInput();
-
-        ImVec2 availableSize = ImGui::GetContentRegionAvail();
-        RenderTexture* framebuffer = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetFrameBuffer();
-
-        // Resize framebuffer if size changed
-        if (static_cast<int>(availableSize.x) != framebuffer->texture.width ||
-            static_cast<int>(availableSize.y) != framebuffer->texture.height) {
-            UnloadRenderTexture(*framebuffer);
-            *framebuffer = LoadRenderTexture(
-                static_cast<int>(availableSize.x),
-                static_cast<int>(availableSize.y)
-            );
-        }
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered())
+        m_Editor->ClearSelections();
 
 
-        if (ImGui::IsWindowHovered() && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !isMouseLocked) {
-            ImVec2 imageStart = ImGui::GetCursorScreenPos(); // top-left of the image
-            Vector2 mouse = GetMousePosition();
-            float localX = mouse.x - imageStart.x;
-            float localY = mouse.y - imageStart.y;
 
-            Vector2 d = {
-                (localX / availableSize.x) * GetRenderWidth() ,
-                (localY / availableSize.y) * GetRenderHeight() 
-            };
+    if (IsMouseButtonReleased(MOUSE_RIGHT_BUTTON) && isMouseLocked) {
+        EnableCursor();
+        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+        isMouseLocked = false;
+    }
 
-            Ray ray = GetMouseRay(d, *m_Editor->GetRenderStack()->GetLayer<GameLayer>()->Get3DCamera());
-            for (auto& [x, y] : m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetEntities()) {
+    if (isMouseLocked)
+        m_Editor->HandleCameraMovementInput();
 
-                if (y->GetComponent<IE::RenderComponent>() != nullptr && y->GetComponent<IE::TransformComponent>() != nullptr) {
-                    RayCollision collision = GetRayCollisionMesh(ray, y->GetComponent<IE::RenderComponent>()->m_Model->meshes[0], y->GetComponent<IE::TransformComponent>()->GetWorldTransform());
-                    if (collision.hit) {
-                        m_Editor->ClearSelections();
-                        m_Editor->Select(y.get());
-                    }
+    ImVec2 availableSize = ImGui::GetContentRegionAvail();
+    RenderTexture* framebuffer = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetFrameBuffer();
 
+    // Resize framebuffer if size changed
+    if (static_cast<int>(availableSize.x) != framebuffer->texture.width ||
+        static_cast<int>(availableSize.y) != framebuffer->texture.height) {
+        UnloadRenderTexture(*framebuffer);
+        *framebuffer = LoadRenderTexture(
+            static_cast<int>(availableSize.x),
+            static_cast<int>(availableSize.y)
+        );
+    }
+
+
+    if (ImGui::IsWindowHovered() && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !isMouseLocked) {
+        ImVec2 imageStart = ImGui::GetCursorScreenPos(); // top-left of the image
+        Vector2 mouse = GetMousePosition();
+        float localX = mouse.x - imageStart.x;
+        float localY = mouse.y - imageStart.y;
+
+        Vector2 d = {
+            (localX / availableSize.x) * GetRenderWidth() ,
+            (localY / availableSize.y) * GetRenderHeight() 
+        };
+
+        Ray ray = GetMouseRay(d, *m_Editor->GetRenderStack()->GetLayer<GameLayer>()->Get3DCamera());
+        for (auto& [x, y] : m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetEntities()) {
+
+            if (y->GetComponent<IE::RenderComponent>() != nullptr && y->GetComponent<IE::TransformComponent>() != nullptr) {
+                RayCollision collision = GetRayCollisionMesh(ray, y->GetComponent<IE::RenderComponent>()->m_Model->meshes[0], y->GetComponent<IE::TransformComponent>()->GetWorldTransform());
+                if (collision.hit) {
+                    m_Editor->ClearSelections();
+                    m_Editor->Select(y.get());
                 }
 
             }
 
         }
 
-
-        // Draw the image directly, filling the entire area
-        ImGui::Image(
-            (ImTextureID)(uintptr_t)&framebuffer->texture,
-            availableSize,
-            ImVec2(0, 1),  // bottom-left
-            ImVec2(1, 0)   // top-right (flip Y)
-        );
-
-        // Overlay UI like Play/Stop buttons
-        DrawViewportButtons(availableSize, availableSize);
-
-        ImGui::End();
-        ImGui::PopStyleVar();
     }
+
+
+    // Draw the image directly, filling the entire area
+    ImGui::Image(
+        (ImTextureID)(uintptr_t)&framebuffer->texture,
+        availableSize,
+        ImVec2(0, 1),  // bottom-left
+        ImVec2(1, 0)   // top-right (flip Y)
+    );
+
+    // Overlay UI like Play/Stop buttons
+    DrawViewportButtons(availableSize, availableSize);
+
+    ImGui::End();
+    ImGui::PopStyleVar();
+}
 
 
 void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& framebufferSize) {
@@ -427,6 +433,25 @@ void ImGuiLayer::DrawProperities() {
             ImGui::Dummy({ 3,3 });
             ImGui::Separator();
             ImGui::Dummy({ 3,3 });
+
+            ImGui::Button("                                                                   ");
+            if (ImGui::BeginDragDropTarget()) {
+
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_FILE")) {
+                    const char* droppedPath = static_cast<const char*>(payload->Data);
+                    std::string extension = std::filesystem::path(droppedPath).extension().string();
+                    std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+                    if (extension != ".lua") { IE_LOG_ERROR("Couldn't add file with " << extension << " extension. Please use Lua Scripts");}
+                    else {
+                       auto * t =  obj->AddComponent<IE::ScriptComponent>();
+                       t->SetScriptFile(droppedPath);
+
+                    }
+                }
+
+                ImGui::EndDragDropTarget();
+            }
+
 
             for (const auto& [typeId, component] : obj->GetAllComponents()) {
                 std::string typeName = component->m_Name();
@@ -535,6 +560,7 @@ void ImGuiLayer::DrawProperities() {
     ImGui::End();
 }
 
+
 void ImGuiLayer::DrawProjectView() {
     ImGui::Begin("Project");
 
@@ -620,6 +646,7 @@ void ImGuiLayer::DrawProjectView() {
     ImGui::End();
 }
 
+
 void ImGuiLayer::DrawProfiler() {
     ImGui::Begin("Profiler");
 
@@ -645,7 +672,6 @@ void ImGuiLayer::DrawProfiler() {
 
     ImGui::End();
 }
-
 
 
 void ImGuiLayer::DrawLog()
@@ -730,7 +756,6 @@ void ImGuiLayer::DrawSceneSettings(){
         ImGui::CloseCurrentPopup();
     ImGui::End(); // Scene Settings
 }
-
 
 
 void ImGuiLayer::DrawObjectNode(IE::Object* object, int depth)
