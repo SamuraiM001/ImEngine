@@ -10,37 +10,59 @@ using namespace IE;
 void ScriptingEngine::Initialize() {
 	lua.open_libraries(sol::lib::base, sol::lib::math);
 
-	lua.new_usertype<Object>("Object",
+	// Types
+	lua.new_usertype<Object>("Object", 
 		"name", &Object::m_Name
+		,"_id",&Object::m_ID
 	);
-	lua.new_usertype<Vector3>("Vector3",
-		sol::constructors<Vector3(), Vector3(float, float, float)>(),
-		"x", &Vector3::x,
-		"y", &Vector3::y,
-		"z", &Vector3::z
+	lua.new_usertype<Model>("Model",
+		"meshes", &Model::meshes,
+		"meshCount", &Model::meshCount,
+		"meshMaterial", &Model::meshMaterial
 	);
+
+
 	lua.new_usertype<TransformComponent>("TransformComponent",
 		"position", &TransformComponent::m_Position,
 		"rotation", &TransformComponent::m_Rotation,
 		"scale", &TransformComponent::m_Scale
 	);
 
+	lua.new_usertype<CameraComponent>("CameraComponent",
+		"fov", &CameraComponent::FOV
+	);
+	lua.new_usertype<RenderComponent>("RenderComponent",
+		"model", &RenderComponent::m_Model
+	);
 
-	lua["Object"]["AddComponent"] = [](Object& self, const std::string& typeName) -> sol::object {
-		auto it = s_AddComponentMap.find(typeName);
-		if (it == s_AddComponentMap.end())
+
+	// Lua binding
+	lua["Object"]["AddComponent"] = [this](Object& self, const std::string& typeName) -> sol::object {
+
+		if (typeName == "TransformComponent") {
+			if (!self.GetComponent<TransformComponent>())
+				self.AddComponent<TransformComponent>();
+			return sol::make_object(lua, self.GetComponent<TransformComponent>());
+		}
+		if (typeName == "CameraComponent") {
+			if (!self.GetComponent<CameraComponent>())
+				self.AddComponent<CameraComponent>();
+			return sol::make_object(lua, self.GetComponent<CameraComponent>());
+		}
+		if (typeName == "RenderComponent") {
+			if (!self.GetComponent<RenderComponent>())
+				self.AddComponent<RenderComponent>();
+			return sol::make_object(lua, self.GetComponent<RenderComponent>());
+		}
+		
+		if (ComponentRegistry::Get().IsScriptComponent(typeName) ) {
+			std::cout << "[Lua] Warning: Unknown component type '" << typeName << "'\n";
 			return sol::nil;
-
-		void* raw = it->second(self);
-
-		if (typeName == "TransformComponent")
-			return sol::make_object(lua, *(TransformComponent*)raw);
-
-		// etc...
-
+		}
 		return sol::nil;
-		};
-
-
+	};
 
 }
+
+
+

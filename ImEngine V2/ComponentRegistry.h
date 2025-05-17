@@ -1,23 +1,22 @@
-#pragma once
+﻿#pragma once
 #include <unordered_map>
 #include <functional>
 #include <iostream>
 #include <string>
 #include <memory>
 #include <typeindex>
-#include "ECS.h"  // Ensure this file includes the definitions of IE::Component
+#include "ECS.h"  // Include Component base
 
 namespace IE {
 
     class ComponentRegistry {
     public:
-        // Singleton accessor
         static ComponentRegistry& Get() {
             static ComponentRegistry instance;
             return instance;
         }
 
-        // Register a component type T with its unique name.
+        // Register native component (C++)
         template<typename T>
         void Register() {
             T temp;
@@ -30,7 +29,7 @@ namespace IE {
                 };
         }
 
-        // Create a component instance by its registered name.
+        // Create native component
         std::unique_ptr<Component> CreateComponent(const std::string& name) const {
             auto it = m_Factories.find(name);
             if (it != m_Factories.end()) {
@@ -39,12 +38,35 @@ namespace IE {
             return nullptr;
         }
 
-        // Retrieve all registered component names with a lambda returning its type.
+        // Register a Lua script component 
+        void RegisterScriptComponent(const std::string& name, const std::string& filePath) {
+            m_ScriptComponents[name] = filePath;
+            std::cout << "[ScriptRegistry] Registered Lua component: " << name
+                << " -> " << filePath << "\n";
+        }
+
+        // Check if it's a script component
+        bool IsScriptComponent(const std::string& name) const {
+            return m_ScriptComponents.find(name) != m_ScriptComponents.end();
+        }
+
+        // Get script path
+        const std::string& GetScriptComponentPath(const std::string& name) const {
+            static const std::string empty = "";
+            auto it = m_ScriptComponents.find(name);
+            return (it != m_ScriptComponents.end()) ? it->second : empty;
+        }
+
         const std::unordered_map<std::string, std::function<std::type_index()>>& GetAll() const {
             return m_ComponentTypes;
         }
 
+        const std::unordered_map<std::string, std::string>& GetAllScriptComponents() const {
+            return m_ScriptComponents;
+        }
+
         static void RegisterComponents();
+
     private:
         ComponentRegistry() = default;
         ComponentRegistry(const ComponentRegistry&) = delete;
@@ -52,6 +74,8 @@ namespace IE {
 
         std::unordered_map<std::string, std::function<std::type_index()>> m_ComponentTypes;
         std::unordered_map<std::string, std::function<std::unique_ptr<Component>()>> m_Factories;
+
+        std::unordered_map<std::string, std::string> m_ScriptComponents;
     };
 
 }

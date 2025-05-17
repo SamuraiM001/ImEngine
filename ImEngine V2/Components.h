@@ -75,7 +75,6 @@ namespace IE {
             return FOV;
         }
         void SetFOV(float s) { FOV = s; };
-    private:
         float FOV = 70.f;
     };
 

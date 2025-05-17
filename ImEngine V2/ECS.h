@@ -103,8 +103,8 @@ namespace IE {
 
     public:
         std::string m_Name;
-    private:
         uint32_t m_ID;
+    private:
         std::unordered_map<std::type_index, std::unique_ptr<Component>> m_Components;
 
         Texture2D m_BillboardText;
