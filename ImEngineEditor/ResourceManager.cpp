@@ -3,7 +3,7 @@
 #include <windows.h>
 #include <filesystem>
 #include <shobjidl_core.h> // Just part of windows.h in modern toolsets
-
+#include <fstream>
 
 std::string ResourceManager::OpenFile(const std::string& fType)
 {
@@ -36,8 +36,6 @@ std::string ResourceManager::OpenFile(const std::string& fType)
 
     return "";
 }
-
-
 
 std::string ResourceManager::OpenFolder() {
     std::string result;
@@ -74,13 +72,58 @@ std::string ResourceManager::OpenFolder() {
     return result;
 }
 
+void ResourceManager::ReloadFolder(){
+    OpenDirectory(GetCurrentPath());
+}
+
+void ResourceManager::CreateFolder(){
+
+}
+
+void ResourceManager::CreateAsset(std::string name, std::string dir)
+{
+}
+
+void ResourceManager::CreateDir()
+{
+}
+
+void ResourceManager::CreateAsset(std::string name) {
+
+    // Return if the name is empty or contains invalid characters
+    if (name.empty()) return;
+
+    // Build the full file path
+    std::filesystem::path filePath = std::filesystem::path(GetCurrentPath()) / name;
+
+    // Avoid throwing exceptions, use error_code instead
+    std::error_code ec;
+    if (exists(filePath, ec)) {
+        IE_LOG_ERROR("File already exists: " << filePath);
+        return;
+    }
+
+    // Try to create the file and write a basic header
+    std::ofstream file(filePath);
+    if (!file.is_open()) {
+        IE_LOG_ERROR("Could not create file: " << filePath);
+        return;
+    }
+
+    file.close();
+
+    // Notify or update UI
+    ReloadFolder();
+}
+
+
 
 void ResourceManager::LoadDirectory(const std::string directory) {
     m_JoinedPaths.push(directory);
-    LoadDir(directory);
+    OpenDirectory(directory);
 }
 
-void ResourceManager::LoadDir(const std::string directory) {
+void ResourceManager::OpenDirectory(const std::string directory) {
     m_DirectoryContents.clear();
     std::filesystem::path dirPath(directory);
 
@@ -120,9 +163,8 @@ std::string ResourceManager::GetCurrentPath(){
 void ResourceManager::GoBack(){
     if (m_JoinedPaths.size() > 1) {
         m_JoinedPaths.pop();
-        LoadDir(m_JoinedPaths.top());
+        OpenDirectory(m_JoinedPaths.top());
     }
-    IE_LOG(m_JoinedPaths.size());
 }   
 
 

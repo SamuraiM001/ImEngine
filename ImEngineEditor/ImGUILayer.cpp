@@ -5,6 +5,7 @@
 #include "Profiler.h"
 #include "Constants.h"
 #include <filesystem>
+#include <windows.h>
 
 #pragma region ImGui Setup
 
@@ -118,6 +119,12 @@ void ImGuiLayer::SetupImGuiStyle(){
 void ImGuiLayer::OnAttach() {
     rlImGuiSetup(true);
     SetupImGuiStyle();
+
+    m_FunctionsByExtensions[".imscene"] = [this](std::string path) {
+        IE::SaveManager::LoadSceneFromAFile(
+            m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene(), path
+        );
+    };
 
 
     m_ResourceManager.LoadDirectory(IE::Core::m_WorkFolder);
@@ -416,7 +423,7 @@ void ImGuiLayer::DrawHierarchy()
 
 
 void ImGuiLayer::DrawProperities() {
-    ImGui::SetNextWindowSize(ImVec2(300, 500), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(300, 500));
     ImGui::Begin("Properties");
     ImGui::Dummy({ 5,5 });
     if (!m_Editor->GetSelectedObject().empty()) {
@@ -504,6 +511,8 @@ void ImGuiLayer::DrawProperities() {
 
                     // Component content
                     component->GuiRender();
+
+
                     ImGui::Dummy({ 1, 4 });
 
                     ImGui::EndGroup();
@@ -572,6 +581,23 @@ void ImGuiLayer::DrawProjectView() {
         }
         ImGui::SameLine();
         ImGui::TextUnformatted(m_ResourceManager.GetCurrentPath().c_str());
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - 40); 
+        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(45, 45, 45, 255));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(70, 70, 70, 255));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(90, 90, 90, 255));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 4));
+
+        ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Use your UI font (e.g., FontAwesome with ICON_FA_SYNC)
+
+        if (ImGui::Button(ICON_FA_ROTATE)) {
+            m_ResourceManager.ReloadFolder();
+        }
+        
+        ImGui::PopFont();
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(3);
+
         ImGui::Separator();
     }
     ImGui::EndChild();
@@ -604,13 +630,23 @@ void ImGuiLayer::DrawProjectView() {
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(120, 120, 120, 255));
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
             ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
+      
 
-            if (ImGui::Button(icon, ImVec2(thumbnailSize, thumbnailSize))) {
-                if (entry.type == ResourceManager::Dir)
+            ImGui::Button(icon, ImVec2(thumbnailSize, thumbnailSize));
+
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                if (entry.type == ResourceManager::Dir) {
                     m_ResourceManager.LoadDirectory(entry.fullPath);
-                else
-                    IE_LOG("Clicked file: {}", entry.fullPath);
+                }
+                else {
+                    std::string extension = std::filesystem::path(entry.fullPath).extension().string();
+                    if (m_FunctionsByExtensions[extension])
+                        m_FunctionsByExtensions[extension](entry.fullPath);
+                    else
+                        system(entry.fullPath.c_str());
+                }
             }
+
 
             if (entry.type == ResourceManager::File && ImGui::BeginDragDropSource()) {
                 ImGui::SetDragDropPayload("ASSET_FILE", entry.fullPath.c_str(), entry.fullPath.size() + 1);
@@ -639,9 +675,90 @@ void ImGuiLayer::DrawProjectView() {
             ImGui::PopID();
         }
 
+        if (ImGui::IsWindowHovered() && IsMouseButtonPressed(1)) {
+            ImGui::OpenPopup("FolderViewPopup");
+        }
+
+        static bool openNewFilePopup = false;
+        static char newFileName[256] = "NewFile.txt";
+
+        if (ImGui::BeginPopup("FolderViewPopup")) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 4));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0)); // Transparent background
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.2f, 0.2f, 1));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.3f, 0.3f, 1));
+        
+
+            if (ImGui::Selectable("New File", false, ImGuiSelectableFlags_DontClosePopups)) {
+                openNewFilePopup = true;
+                ImGui::CloseCurrentPopup(); 
+            }
+
+            if (ImGui::Selectable("New Folder", false, ImGuiSelectableFlags_DontClosePopups)) {
+                
+            }
+
+            if (ImGui::Selectable("Delete", false)) {
+            
+            }
+
+            // Open a modal popup
+
+            ImGui::PopStyleColor(3);
+            ImGui::PopStyleVar(2);
+            ImGui::EndPopup();
+        }
+
+        if (ImGui::BeginPopup("FolderViewPopup")) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 4));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0)); // Transparent background
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.2f, 0.2f, 1));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.3f, 0.3f, 1));
+
+            if (ImGui::Selectable("Open", false)) {
+
+            }
+
+            if (ImGui::Selectable("Delete", false)) {
+
+            }
+
+            // Open a modal popup
+
+            ImGui::PopStyleColor(3);
+            ImGui::PopStyleVar(2);
+            ImGui::EndPopup();
+        }
+
+
+        if (openNewFilePopup) {
+            ImGui::OpenPopup("New File");
+            openNewFilePopup = false;
+        }
+
+        if (ImGui::BeginPopupModal("New File", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text("Enter file name:");
+            ImGui::InputText("##NewFileName", newFileName, IM_ARRAYSIZE(newFileName));
+            ImGui::Spacing();
+            if (ImGui::Button("Create")) {
+                m_ResourceManager.CreateAsset(newFileName);
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+
         ImGui::Columns(1);
     }
     ImGui::EndChild();
+
+
 
     ImGui::End();
 }

@@ -31,7 +31,6 @@ public:
     void DrawProfiler();
     void DrawLog();
     void DrawSceneSettings();
-    void DrawProjectSettings();
     void DrawObjectNode(IE::Object* object, int depth);
     void DrawViewportButtons(const ImVec2& availableSize, const ImVec2& framebufferSize);
 
@@ -42,7 +41,11 @@ public:
     void OnAttach() override;
     void OnDetach() override;
     void OnEditorUpdate() override;
-private:    
+    std::unordered_map<std::string, std::function<void(std::string)>> m_FunctionsByExtensions;
+
+
+protected:    
+
     ResourceManager m_ResourceManager;
     Editor* m_Editor; 
 
