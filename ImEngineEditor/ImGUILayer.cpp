@@ -612,8 +612,10 @@ void ImGuiLayer::DrawProjectView() {
         if (columnCount < 1) columnCount = 1;
 
         ImGui::Columns(columnCount, 0, false);
+        std::string popupName;
 
         const auto& files = m_ResourceManager.GetDirectory();
+        bool lockPopups = false;
         for (const auto& entry : files) {
             ImGui::PushID(entry.fullPath.c_str());
 
@@ -657,6 +659,12 @@ void ImGuiLayer::DrawProjectView() {
             ImGui::PopFont();
             ImGui::PopStyleVar();
             ImGui::PopStyleColor(3);
+            if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+                popupName  = entry.fullPath;
+                ImGui::OpenPopup(popupName.c_str());
+                IE_LOG(entry.fullPath);
+                lockPopups = true;
+            }
 
             std::string name = entry.name;
             float maxWidth = thumbnailSize + 10.0f;
@@ -673,9 +681,10 @@ void ImGuiLayer::DrawProjectView() {
 
             ImGui::NextColumn();
             ImGui::PopID();
+
         }
 
-        if (ImGui::IsWindowHovered() && IsMouseButtonPressed(1)) {
+        if (ImGui::IsWindowHovered() && IsMouseButtonPressed(1) && !lockPopups) {
             ImGui::OpenPopup("FolderViewPopup");
         }
 
@@ -710,27 +719,6 @@ void ImGuiLayer::DrawProjectView() {
             ImGui::EndPopup();
         }
 
-        if (ImGui::BeginPopup("FolderViewPopup")) {
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 4));
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0)); // Transparent background
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.2f, 0.2f, 1));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.3f, 0.3f, 1));
-
-            if (ImGui::Selectable("Open", false)) {
-
-            }
-
-            if (ImGui::Selectable("Delete", false)) {
-
-            }
-
-            // Open a modal popup
-
-            ImGui::PopStyleColor(3);
-            ImGui::PopStyleVar(2);
-            ImGui::EndPopup();
-        }
 
 
         if (openNewFilePopup) {
