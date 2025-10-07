@@ -175,7 +175,6 @@
     <ClInclude Include="ShaderRegistry.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="App.cpp" />
     <ClCompile Include="ComponentRegistry.cpp" />
     <ClCompile Include="Components.cpp" />
     <ClCompile Include="Core.cpp" />

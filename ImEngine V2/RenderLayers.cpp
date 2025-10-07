@@ -24,6 +24,9 @@ void GameLayer::OnRender() {
    
     for (auto& [type, obj] : GetScene()->GetEntities()) { 
         obj->Render();
+        if (m_SelectedObject == obj.get()) {
+            obj->RenderSelection();
+        }
     }
     
     GetScene()->GetShaderRegistry()->EndShading();
@@ -58,7 +61,7 @@ void GameLayer::OnUpdate() {
     }
     else {
         ClearBackground(BLACK);
-        DrawText("NO CAMERA FOUND! RENDERING WITH BASIC RAYLIB CAMERA",0,0, 26, WHITE);
+        DrawText("NO CAMERA SET! RENDERING WITH STATIC RAYLIB CAMERA",0,0, 26, WHITE);
     }
     for (auto& [type, obj] : GetScene()->GetEntities()) {
         obj->Update();

@@ -4,11 +4,8 @@
 #include "Runtime.h"
 #include "ResourceManager.h"
 
+#include "Window.h"
 
-#include "imgui/imgui.h"
-#include "imgui/rlImGui.h"
-
-#include "raylib.h"
 
 
 class Editor;
@@ -20,19 +17,21 @@ public:
     ImGuiLayer(Editor* editor) : m_Editor(editor) {
         IE_ASSERT(editor != nullptr, "Editor pointer cannot be null!");
     }
+    std::vector<std::unique_ptr<Window>> m_Windows;
     static void SetupImGuiStyle();
-    bool isMouseLocked = false;
     void DrawMainMenuBar();
     void DrawMainDockspace();
-    void DrawViewport();
-    void DrawHierarchy();
+
+    void DrawPlugins();
     void DrawProperities();
     void DrawProjectView();
     void DrawProfiler();
+    void DrawShaderController();
     void DrawLog();
-    void DrawSceneSettings();
-    void DrawObjectNode(IE::Object* object, int depth);
-    void DrawViewportButtons(const ImVec2& availableSize, const ImVec2& framebufferSize);
+
+public:
+
+    void OpenFileEntry(ResourceManager::ResourceEntry rE);
 
 public:
     void HandleBasicInput();
@@ -44,10 +43,10 @@ public:
     std::unordered_map<std::string, std::function<void(std::string)>> m_FunctionsByExtensions;
 
 
+    Editor* m_Editor; 
 protected:    
 
     ResourceManager m_ResourceManager;
-    Editor* m_Editor; 
 
 
 };
@@ -67,8 +66,8 @@ public:
 
     void HandleCameraMovementInput();
     
-    void Select(IE::Object* obj) {obj->Select() ; m_selectedObjects.push_back(obj); };
-    void ClearSelections() { for (auto& x : m_selectedObjects)x->UnSelect(); m_selectedObjects.clear(); }
+    void Select(IE::Object* obj) { GetRenderStack()->GetLayer<GameLayer>()->SetSelectedObject(obj); m_selectedObjects.push_back(obj); };
+    void ClearSelections() { GetRenderStack()->GetLayer<GameLayer>()->SetSelectedObject(nullptr); m_selectedObjects.clear(); }
     RuntimeManager* GetRuntimeManager() { return &m_RuntimeManager; };
 public:
     //Getters

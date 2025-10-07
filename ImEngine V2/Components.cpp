@@ -1,6 +1,7 @@
 ﻿#include "Components.h"
 #include <filesystem>
 #include <sstream>
+
 using namespace IE;
 
 
@@ -13,7 +14,7 @@ Vector3 TransformComponent::GetForwardVector() {
         rotationMatrix.m9,
         rotationMatrix.m10
     };
-}\
+}
 
 Vector3 TransformComponent::GetUpVector() {
     Matrix rotationMatrix = MatrixRotateXYZ(m_Rotation);
@@ -111,12 +112,8 @@ void TransformComponent::GuiRender()
 
 }
 
-void TransformComponent::Render(){
-
-    if (GetOwner()->isSelected) {
-        DrawGizmos();
-    }
-
+void TransformComponent::RenderSelection() {
+    DrawGizmos();
 }
 
 void TransformComponent::DrawGizmos() {
@@ -132,9 +129,16 @@ void TransformComponent::DrawGizmos() {
     Vector3 up = origin + GetUpVector();
     Vector3 forward = origin + GetForwardVector();
 
-    DrawLine3D(origin, right, RED);
-    DrawLine3D(origin, up, GREEN);
-    DrawLine3D(origin, forward, BLUE);
+    if (isLocalMode) {
+        DrawLine3D(origin, right, RED);
+        DrawLine3D(origin, up, GREEN);
+        DrawLine3D(origin, forward, BLUE);
+    }
+    else {
+        DrawLine3D(origin, origin + Vector3({ 0,0,1 }), BLUE);
+        DrawLine3D(origin, origin + Vector3({ 0,1,0 }), GREEN);
+        DrawLine3D(origin, origin + Vector3({ 1,0,0 }), RED);
+    }
 }
 
 void TransformComponent::Serialize(std::ostream& out)  {
@@ -209,6 +213,8 @@ void RenderComponent::OnAttach(){
     if (GetOwner()->GetComponent<TransformComponent>() == nullptr) {
         GetOwner()->AddComponent<TransformComponent>();
     }
+    ReaplyMaterials();
+
 }
 
 void RenderComponent::Serialize(std::ostream& out){
@@ -230,9 +236,24 @@ void RenderComponent::Deserialize(const std::string& in) {
 
         Model rawModel = LoadModel(m_ModelPath.c_str());
         if (rawModel.meshCount == 0 && !m_ModelPath.empty()) {
-            IE_LOG_ERROR("Failed to load model: {}", m_ModelPath);
+            IE_LOG_ERROR("Failed to load model: "<< m_ModelPath);
         }
         m_Model = std::make_shared<Model>(rawModel);
+    }
+}
+
+void RenderComponent::ReaplyMaterials(){
+    IE::MaterialComponent* matComp = GetOwner()->GetComponent<MaterialComponent>();
+
+    if (matComp) {
+        std::vector<MaterialComponent::MaterialEntry>* materials = matComp->GetMaterials();
+        if (materials) {
+            for (MaterialComponent::MaterialEntry& m : *materials) {
+                m_Model->materials[0].shader = LoadShader(m.vsPath.c_str(), m.fsPath.c_str());
+            }
+        }
+
+
     }
 }
 
@@ -259,13 +280,12 @@ void RenderComponent::GuiRender()
                 std::string extension = std::filesystem::path(droppedPath).extension().string();
                 std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
-                if (extension == ".obj")
-                {
+                if(extension == ".obj"){
                     m_ModelPath = droppedPath;
                     IE_LOG(m_ModelPath);
                     Model rawModel = LoadModel(m_ModelPath.c_str());
                     if (rawModel.meshCount == 0) {
-                        IE_LOG_ERROR("Failed to load model: {}", m_ModelPath);
+                        IE_LOG_ERROR("Failed to load model:" << m_ModelPath);
                     }
                     m_Model = std::make_shared<Model>(rawModel);
                 }
@@ -411,6 +431,7 @@ void CameraComponent::Serialize(std::ostream& out){
 
     out << "      IsMainCam " << (GetOwner()->GetScene()->GetCurrentCamera() == GetOwner()) << '\n';
 }
+
 void CameraComponent::Deserialize(const std::string& in)
 {
     std::istringstream ss(in);
@@ -554,4 +575,70 @@ void ScriptComponent::Deserialize(const std::string& in) {
 
 #pragma endregion
 
+#pragma region Material C
 
+void MaterialComponent::GuiRender()
+{
+    ImGui::Text("Render Component (Multiple Materials)");
+
+    for (size_t i = 0; i < m_Mats.size(); ++i)
+    {
+        ImGui::PushID(static_cast<int>(i));
+
+        ImGui::Text("Material %zu", i);
+
+        // --- Vertex Shader Path ---
+        char vsBuffer[256];
+        strncpy_s(vsBuffer, m_Mats[i].vsPath.c_str(), sizeof(vsBuffer));
+        vsBuffer[sizeof(vsBuffer) - 1] = '\0';
+
+        if (ImGui::InputText("VS Path", vsBuffer, sizeof(vsBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+        {
+            m_Mats[i].vsPath = vsBuffer;
+            GetOwner()->GetComponent<RenderComponent>()->ReaplyMaterials();
+        }
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_FILE"))
+            {
+                std::string droppedPath = (const char*)payload->Data;
+                m_Mats[i].vsPath = droppedPath;
+                GetOwner()->GetComponent<RenderComponent>()->ReaplyMaterials();
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        // --- Fragment Shader Path ---
+        char fsBuffer[256];
+        strncpy_s(fsBuffer, m_Mats[i].fsPath.c_str(), sizeof(fsBuffer));
+        fsBuffer[sizeof(fsBuffer) - 1] = '\0';
+
+        if (ImGui::InputText("FS Path", fsBuffer, sizeof(fsBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+        {
+            m_Mats[i].fsPath = fsBuffer;
+            GetOwner()->GetComponent<RenderComponent>()->ReaplyMaterials();
+        }
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_FILE"))
+            {
+                std::string droppedPath = (const char*)payload->Data;
+                m_Mats[i].fsPath = droppedPath;
+                GetOwner()->GetComponent<RenderComponent>()->ReaplyMaterials();
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        ImGui::Separator();
+        ImGui::PopID();
+    }
+
+    if (ImGui::Button("Add Material"))
+    {
+        m_Mats.emplace_back(); // Add empty material
+    }
+}
+
+#pragma endregion

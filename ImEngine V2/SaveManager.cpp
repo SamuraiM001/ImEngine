@@ -23,8 +23,9 @@ void SaveManager::SaveSceneToAFile(Scene* scene) {
         out << "  Components " << '\n';
         for (const auto& [_, component] : entity->GetAllComponents()) {
 
-            out << "    " << component->m_Name() << '\n';
+            out << "    " << component->m_isActive << component->m_Name() << '\n';
             component->Serialize(out);
+
         }
         out << "  EndComponents";
         out << "\n";
@@ -82,6 +83,12 @@ void SaveManager::LoadSceneFromAFile(Scene* scene, std::string filePath) {
                 std::string testName;
                 testStream >> testName;
 
+                bool isActive = testName[0] == '1';
+
+                if (testName.size() > 0 && (testName[0] == '0' || testName[0] == '1')) {
+                    testName = testName.substr(1); 
+                }
+
                 const auto& allComponents = IE::ComponentRegistry::Get().GetAll();
                 auto it = allComponents.find(testName);
 
@@ -98,7 +105,8 @@ void SaveManager::LoadSceneFromAFile(Scene* scene, std::string filePath) {
                         continue;
                     }
                     currentType = it->second();
-                    currentComponent->SetOwner(currentEntity);  // Set first
+                    currentComponent->SetOwner(currentEntity);  
+                    currentComponent->m_isActive = isActive;
                 }
                 else if (currentComponent) {
                     currentComponent->Deserialize(line);

@@ -8,14 +8,13 @@ namespace IE {
     public:
 
         void GuiRender() override;
-        void Render() override;
         void Serialize(std::ostream& out) override;
         void Deserialize(const std::string& in)override;
 
         void SetPosition(Vector3 position) { m_Position = position; }
         void SetRotation(Vector3 rotation) { m_Rotation = rotation; }
         void SetScale(Vector3 scale) { m_Scale = scale; }
-
+        bool isLocalMode = false;
 
         Matrix GetWorldTransform();
 
@@ -39,6 +38,7 @@ namespace IE {
         Vector3 m_Rotation = { 0, 0, 0 };
         Vector3 m_Scale = { 1, 1, 1 };
 
+        void RenderSelection() override;
         void DrawGizmos();
     };
 
@@ -50,6 +50,8 @@ namespace IE {
         void Serialize(std::ostream& out) override;
         void Deserialize(const std::string& in)override;
 
+        void ReaplyMaterials();
+
         void GuiRender() override;
         void Render() override;
 
@@ -58,7 +60,6 @@ namespace IE {
 
     private:
         std::string m_ModelPath;
-        std::shared_ptr<Material> m_Mat = nullptr;
     };
 
     class CameraComponent : public Component {
@@ -93,11 +94,11 @@ namespace IE {
 
     class InputComponent : public Component {
     public:
-        bool GetKey(int KeyCode) {return IsKeyDown(KeyCode);}
-        bool GetMouseButton(int button) {return IsMouseButtonDown(button);}
-        Vector2 GetMousePos() {return GetMousePosition();};
+        bool GetKey(int KeyCode) { return IsKeyDown(KeyCode); }
+        bool GetMouseButton(int button) { return IsMouseButtonDown(button); }
+        Vector2 GetMousePos() { return GetMousePosition(); };
         std::string m_Name() override { return "InputComponent"; };
-        
+
     };
 
     class ScriptComponent :public Component {
@@ -127,4 +128,29 @@ namespace IE {
 
         std::unordered_map<std::string, sol::object> m_GlobalVariables;
     };
+
+
+    class MaterialComponent : public Component
+    {
+    public:
+        std::string m_Name() override { return "MaterialComponent"; }
+
+        struct MaterialEntry
+        {
+            std::string vsPath;
+            std::string fsPath;
+        };
+
+
+        std::vector<MaterialEntry>* GetMaterials() { return &m_Mats; }
+        Material mat;
+
+        void GuiRender() override;
+
+
+
+    private:
+        std::vector<MaterialEntry> m_Mats;
+    };
+
 }

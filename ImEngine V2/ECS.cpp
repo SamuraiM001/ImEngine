@@ -7,13 +7,16 @@ using namespace IE;
 
  void Object::Update() {
     for (auto& [type, comp] : m_Components) {
+        if(comp->m_isActive)
         comp->Update();
     }
 }
 
 void Object::EditorUpdate(){
     for (auto& [type, comp] : m_Components) {
+        if (comp->m_isActive)
         comp->EditorUpdate();
+
     }
 }
 
@@ -45,7 +48,16 @@ void Object::SetParent(Object* newParent)
 
 void Object::Render(){
     for (auto& [type, obj] : m_Components) {
-        obj->Render();
+        if (obj->m_isActive) {
+            obj->Render();
+        }
+    }
+}
+
+void Object::RenderSelection(){
+    for (auto& [type, obj] : m_Components) {
+        if (obj->m_isActive)
+        obj->RenderSelection();
     }
 }
 

@@ -23,18 +23,18 @@ public:
      static std::string OpenFolder();
 
 
-     static void CreateFolder();
-     static void CreateAsset(std::string name,std::string dir);
+     //static void CreateFolder();
+    // static void CreateAsset(std::string name,std::string dir);
 
      void ReloadFolder();
 
-     void CreateDir();
+     void CreateDir(std::string name);
      void CreateAsset(std::string name);
 
     void LoadDirectory(const std::string directory);
     void OpenDirectory(const std::string directory);
 
-    const std::vector<ResourceEntry>& GetDirectory() const;
+     std::vector<ResourceEntry>& GetDirectory();
     std::string GetCurrentPath();
     void GoBack();
 private:

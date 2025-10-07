@@ -32,7 +32,7 @@
 namespace sol {
 	namespace detail {
 		inline const char (&default_main_thread_name())[9] {
-			static const char name[9] = "sol.\xF0\x9F\x93\x8C";
+			static const char name[9] = "sol.main";
 			return name;
 		}
 	} // namespace detail

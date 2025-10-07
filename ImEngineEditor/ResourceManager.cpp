@@ -1,9 +1,14 @@
-#include "ResourceManager.h"
+﻿#include "ResourceManager.h"
 #include "Base.h"
 #include <windows.h>
 #include <filesystem>
 #include <shobjidl_core.h> // Just part of windows.h in modern toolsets
 #include <fstream>
+
+#ifdef RELEASE
+#define _CRT_SECURE_NO_WARNINGS
+#endif // RELEASE
+
 
 std::string ResourceManager::OpenFile(const std::string& fType)
 {
@@ -57,13 +62,17 @@ std::string ResourceManager::OpenFolder() {
                     PWSTR pszFilePath = nullptr;
                     if (SUCCEEDED(pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath))) {
                         char path[MAX_PATH];
-                        wcstombs(path, pszFilePath, MAX_PATH);
+                        size_t convertedChars = 0;
+
+                        wcstombs_s(&convertedChars, path, MAX_PATH, pszFilePath, _TRUNCATE);
+
                         result = path;
                         CoTaskMemFree(pszFilePath);
                     }
                     pItem->Release();
                 }
             }
+
             pFileDialog->Release();
         }
         CoUninitialize();
@@ -76,16 +85,25 @@ void ResourceManager::ReloadFolder(){
     OpenDirectory(GetCurrentPath());
 }
 
-void ResourceManager::CreateFolder(){
 
-}
 
-void ResourceManager::CreateAsset(std::string name, std::string dir)
-{
-}
+void ResourceManager::CreateDir(std::string name){
+    std::filesystem::path filePath = std::filesystem::path(GetCurrentPath()) / name;
 
-void ResourceManager::CreateDir()
-{
+
+    if (std::filesystem::create_directory(std::filesystem::path(filePath))) {
+        IE_LOG("Directory '" << filePath << "' created successfully.");
+    }
+    else {
+        // This could mean the directory already exists or there was an error
+        if (std::filesystem::exists(filePath) && std::filesystem::is_directory(filePath)) {
+            std::cout << "Directory '" << filePath << "' already exists." << std::endl;
+        }
+        else {
+            std::cerr << "Error creating directory '" << filePath << "'." << std::endl;
+        }
+    }
+    ReloadFolder();
 }
 
 void ResourceManager::CreateAsset(std::string name) {
@@ -151,8 +169,7 @@ void ResourceManager::OpenDirectory(const std::string directory) {
         IE_LOG_ERROR("[LoadDirectory] Filesystem error: " << e.what());
     }
 }
-
-const std::vector<ResourceManager::ResourceEntry>& ResourceManager::GetDirectory() const{
+ std::vector<ResourceManager::ResourceEntry>& ResourceManager::GetDirectory() {
     return m_DirectoryContents;
 }
 

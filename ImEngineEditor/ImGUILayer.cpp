@@ -6,9 +6,10 @@
 #include "Constants.h"
 #include <filesystem>
 #include <windows.h>
+#include <shellapi.h>  
+#include <imgui/imgui_internal.h>
 
 #pragma region ImGui Setup
-
 
 void ImGuiLayer::SetupImGuiStyle(){
 
@@ -125,8 +126,10 @@ void ImGuiLayer::OnAttach() {
             m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene(), path
         );
     };
-
-
+    
+    m_Windows.push_back(std::make_unique<w_Viewport>(this));
+    m_Windows.push_back(std::make_unique<w_Hierarchy>(this));
+    m_Windows.push_back(std::make_unique<w_Plugins>(this));
     m_ResourceManager.LoadDirectory(IE::Core::m_WorkFolder);
 }
 
@@ -139,6 +142,29 @@ void ImGuiLayer::OnDetach(){
 void ImGuiLayer::OnEditorUpdate() {
     HandleBasicInput();
 }
+
+void ImGuiLayer::OpenFileEntry(ResourceManager::ResourceEntry rE){
+    if (rE.type == ResourceManager::Dir) {
+        m_ResourceManager.LoadDirectory(rE.fullPath);
+    }
+    else {
+        std::string extension = std::filesystem::path(rE.fullPath).extension().string();
+        if (m_FunctionsByExtensions[extension])
+            m_FunctionsByExtensions[extension](rE.fullPath);
+        else {
+            ShellExecuteA(
+                nullptr,               // No parent window
+                "open",                // Operation
+                rE.fullPath.c_str(),   // File to open
+                nullptr,               // Parameters (none)
+                nullptr,               // Default directory
+                SW_DENORMAL          // Show normally
+            );
+            
+        }
+        
+    }
+}   
 
 void ImGuiLayer::HandleBasicInput() {
     if (IsKeyPressed(KEY_DELETE)) {
@@ -159,27 +185,29 @@ void ImGuiLayer::OnRender() {
 
     ClearBackground(BLACK);
 
-    //ImGui::ShowDemoWindow();
-    
     DrawMainDockspace();
     DrawMainMenuBar();
-    DrawViewport();
+
+    //ImGui::ShowDemoWindow();
+
+    for (auto& gWn : m_Windows) {
+        if(gWn->GetActivity())gWn->OnDraw();
+    }
+
     DrawProjectView();
     DrawProfiler();
-    DrawHierarchy();
     DrawLog();
     DrawProperities();
+    DrawShaderController();
 
-
+     
 
     rlImGuiEnd();
 }
 
-
 #pragma endregion
 
 #pragma region ImGui Windows
-
 
 void ImGuiLayer::DrawMainMenuBar() {
     if (ImGui::BeginMainMenuBar()) {
@@ -211,6 +239,13 @@ void ImGuiLayer::DrawMainMenuBar() {
         }
 
         if (ImGui::BeginMenu("Plugins")) {
+            if (ImGui::MenuItem("Manage")) {
+
+            }
+            if (ImGui::MenuItem("Reload")) {
+
+            }
+            ImGui::EndMenu();
 
         }
 
@@ -256,10 +291,49 @@ void ImGuiLayer::DrawMainDockspace() {
 
 }
 
+#pragma endregion
 
-void ImGuiLayer::DrawViewport() {
+#pragma region Viewport
+
+void w_SceneSettings::OnDraw(){
+    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once); // Set initial size
+    ImGui::Begin("Scene Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize); // Allow resize
+    static char rename_buffer[128] = "";
+    ImGui::Text("Scene Name:");
+    if (ImGui::InputText("##SceneName", rename_buffer, IM_ARRAYSIZE(rename_buffer),
+        ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
+        m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->SetName(rename_buffer);
+    }
+
+    ImGui::Separator();
+
+    // Camera Component List
+    IE::Scene* scene = m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene();
+    ImGui::Text("Camera Objects:");
+    ImGui::BeginChild("CameraList", ImVec2(0, 150), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
+
+    for (auto& [id, object] : scene->GetEntities()) {
+        if (object->GetComponent<IE::CameraComponent>() != nullptr) {
+            bool isCurrent = (scene->GetCurrentCamera() && scene->GetCurrentCamera()->GetID() == id);
+            std::string label = object->m_Name + " (ID: " + std::to_string(object->GetID()) + ") " + (isCurrent ? " (StartUp)" : "");
+
+            if (ImGui::Selectable(label.c_str(), isCurrent)) {
+                scene->SetCurrentCamera(object.get());
+            }
+        }
+    }
+
+    ImGui::EndChild();
+
+    // Escape key closes the popup
+    if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+        ImGui::CloseCurrentPopup();
+    ImGui::End(); // Scene Settings
+}
+
+void w_Viewport::OnDraw() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    std::string name = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetName();
+    std::string name =m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetName();
     if (name == "") name = "Scene View";
     ImGui::Begin((name + "###SceneViewDock").c_str(), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
@@ -269,12 +343,13 @@ void ImGuiLayer::DrawViewport() {
     }
 
     if (ImGui::BeginPopup("TabContextMenu")) {
-        DrawSceneSettings();
+
+        SceneSettings.OnDraw();
         ImGui::EndPopup();
     }
 
     // Handle mouse lock for camera control
-    if (ImGui::IsWindowHovered() && IsMouseButtonPressed(MOUSE_RIGHT_BUTTON) && !isMouseLocked) {
+    if (ImGui::IsWindowHovered() && IsMouseButtonPressed(MOUSE_RIGHT_BUTTON) && !isMouseLocked ) {
         DisableCursor();
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
         ImGui::SetWindowFocus();
@@ -282,21 +357,21 @@ void ImGuiLayer::DrawViewport() {
     }
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered())
-        m_Editor->ClearSelections();
+        m_Layer->m_Editor->ClearSelections();
 
 
 
-    if (IsMouseButtonReleased(MOUSE_RIGHT_BUTTON) && isMouseLocked) {
+    if (IsMouseButtonReleased(MOUSE_RIGHT_BUTTON)) {
         EnableCursor();
         ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
         isMouseLocked = false;
     }
 
     if (isMouseLocked)
-        m_Editor->HandleCameraMovementInput();
+       m_Layer->m_Editor->HandleCameraMovementInput();
 
     ImVec2 availableSize = ImGui::GetContentRegionAvail();
-    RenderTexture* framebuffer = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetFrameBuffer();
+    RenderTexture* framebuffer = m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetFrameBuffer();
 
     // Resize framebuffer if size changed
     if (static_cast<int>(availableSize.x) != framebuffer->texture.width ||
@@ -320,14 +395,14 @@ void ImGuiLayer::DrawViewport() {
             (localY / availableSize.y) * GetRenderHeight() 
         };
 
-        Ray ray = GetMouseRay(d, *m_Editor->GetRenderStack()->GetLayer<GameLayer>()->Get3DCamera());
-        for (auto& [x, y] : m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetEntities()) {
+        Ray ray = GetMouseRay(d, *m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->Get3DCamera());
+        for (auto& [x, y] : m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetEntities()) {
 
             if (y->GetComponent<IE::RenderComponent>() != nullptr && y->GetComponent<IE::TransformComponent>() != nullptr) {
                 RayCollision collision = GetRayCollisionMesh(ray, y->GetComponent<IE::RenderComponent>()->m_Model->meshes[0], y->GetComponent<IE::TransformComponent>()->GetWorldTransform());
                 if (collision.hit) {
-                    m_Editor->ClearSelections();
-                    m_Editor->Select(y.get());
+                    m_Layer->m_Editor->ClearSelections();
+                    m_Layer->m_Editor->Select(y.get());
                 }
 
             }
@@ -352,8 +427,7 @@ void ImGuiLayer::DrawViewport() {
     ImGui::PopStyleVar();
 }
 
-
-void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& framebufferSize) {
+void w_Viewport::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& framebufferSize) {
     ImVec2 buttonSize = ImVec2(100, 30); 
     float margin = 10.0f; 
 
@@ -362,8 +436,8 @@ void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& 
     ImGui::SetCursorPos(buttonPos);
 
     if (ImGui::Button("Play", buttonSize)) {
-        m_Editor->GetRuntimeManager()->Start(this);
-        IE::SaveManager::SaveSceneToAFile(m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene());
+        m_Layer->m_Editor->GetRuntimeManager()->Start(this);
+        IE::SaveManager::SaveSceneToAFile(m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene());
         IE_LOG("Runtime Started");
     }
 
@@ -371,7 +445,7 @@ void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& 
     ImGui::SetCursorPos(buttonPos);  
 
     if (ImGui::Button("Stop", buttonSize)) {
-        m_Editor->GetRuntimeManager()->Stop();
+        m_Layer->m_Editor->GetRuntimeManager()->Stop();
         IE_LOG("Runtime Stopped From Engine");
     }
 
@@ -380,15 +454,15 @@ void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& 
 
     if (ImGui::BeginCombo("Create Entity", "Select Entity")) {
         if (ImGui::Selectable("Empty Entity")) {
-            m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->CreateEntity();
+            m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->CreateEntity();
         }
         if (ImGui::Selectable("Rendered Entity")) {
-            IE::Object* s = &m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->CreateEntity();
+            IE::Object* s = &m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->CreateEntity();
             s->AddComponent<IE::TransformComponent>();
             s->AddComponent<IE::RenderComponent>();
         }
         if (ImGui::Selectable("Camera Entity")) {
-            IE::Object* s = &m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->CreateEntity();
+            IE::Object* s = &m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->CreateEntity();
             s->AddComponent<IE::TransformComponent>();
             s->AddComponent<IE::CameraComponent>();
         }
@@ -396,17 +470,20 @@ void ImGuiLayer::DrawViewportButtons(const ImVec2& availableSize, const ImVec2& 
     }
 }
 
+#pragma endregion
 
-void ImGuiLayer::DrawHierarchy()
+#pragma region Hierarchy
+
+void w_Hierarchy::OnDraw()
 {
     ImGui::Begin("Hierarchy");
 
     ImGui::Dummy(ImVec2(0.0f, 10.0f));
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
-        m_Editor->ClearSelections();
+        m_Layer->m_Editor->ClearSelections();
 
-    auto& objects = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetEntities();
+    auto& objects = m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetEntities();
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 8));
 
@@ -420,6 +497,89 @@ void ImGuiLayer::DrawHierarchy()
 
     ImGui::End();
 }
+
+void w_Hierarchy::DrawObjectNode(IE::Object* object, int depth)
+{
+    if (!object) return;
+
+    if (depth > 1000)
+    {
+        IE_LOG_ERROR("Max depth exceeded!");
+        return;
+    }
+
+    ImGui::PushID(object->GetID());
+
+    ImGui::BeginGroup();
+    ImGui::Indent(depth * 20.0f);
+     
+    bool isSelected = m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetSelectedObject() == object;//CHECK IF IT IS SELECTED FROM EDITOR OR EDITOR LAYER
+    if (isSelected)
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.4f, 0.9f, 0.6f));
+
+    if (ImGui::Selectable((object->m_Name  +  " (ID:" + std::to_string(object->GetID()) + ")").c_str(), isSelected, 0, ImVec2(0, 24)))
+    {
+        m_Layer->m_Editor->ClearSelections();
+        m_Layer->m_Editor->Select(object);
+    }
+
+    if (isSelected)
+        ImGui::PopStyleColor();
+
+    if (ImGui::BeginDragDropSource())
+    {
+        IE::Object* ptr = object;
+        ImGui::SetDragDropPayload("OBJECT_HIERARCHY", &ptr, sizeof(IE::Object*));
+        ImGui::Text("Dragging %s", object->m_Name.c_str());
+        ImGui::EndDragDropSource();
+    }
+
+    // Accept drop
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("OBJECT_HIERARCHY"))
+        {
+            IE::Object* dropped = *(IE::Object**)payload->Data;
+
+            if (dropped && dropped != object && dropped->GetParent() != object)
+            {
+                dropped->SetParent(object); 
+            }
+        }
+
+        ImGui::EndDragDropTarget();
+    }
+
+    ImGui::Unindent(depth * 20.0f);
+    ImGui::EndGroup();
+
+    // Recursively draw children
+    for (auto& child : object->GetChildren())
+    {
+        if (child) // null check
+            DrawObjectNode(child, depth + 1);
+    }
+
+    ImGui::PopID();
+}
+
+#pragma endregion
+
+#pragma region Plugins
+
+void w_Plugins::OnDraw(){
+    ImGui::Begin("Plugins",0);
+    //Part where we fetch the plugins, and then we read them from file and check them
+
+    for (int i = 0; i < 10; i++) {//This will be changed to count of fetched plugins
+        ImGui::CollapsingHeader("Name of the plugin will be here soon");
+    }
+
+
+    ImGui::End();
+}
+
+#pragma endregion
 
 
 void ImGuiLayer::DrawProperities() {
@@ -441,8 +601,7 @@ void ImGuiLayer::DrawProperities() {
             ImGui::Separator();
             ImGui::Dummy({ 3,3 });
 
-            ImGui::Button("                                                                   ");
-            if (ImGui::BeginDragDropTarget()) {
+            if (ImGui::BeginDragDropTargetCustom(ImGui::GetCurrentWindow()->Rect(), ImGui::GetCurrentWindow()->ID)) {
 
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_FILE")) {
                     const char* droppedPath = static_cast<const char*>(payload->Data);
@@ -573,146 +732,123 @@ void ImGuiLayer::DrawProperities() {
 void ImGuiLayer::DrawProjectView() {
     ImGui::Begin("Project");
 
-    ImGui::BeginChild("ProjectHeader", ImVec2(0, ImGui::GetFrameHeightWithSpacing()), false,ImGuiWindowFlags_NoScrollbar);
+    // Header
+    ImGui::BeginChild("ProjectHeader", ImVec2(0, ImGui::GetFrameHeightWithSpacing()), false, ImGuiWindowFlags_NoScrollbar);
     {
         ImGui::Separator();
-        if (ImGui::Button("< Back")) {
+        if (ImGui::Button("< Back"))
             m_ResourceManager.GoBack();
-        }
+
         ImGui::SameLine();
         ImGui::TextUnformatted(m_ResourceManager.GetCurrentPath().c_str());
-        ImGui::SameLine(ImGui::GetContentRegionAvail().x - 40); 
-        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(45, 45, 45, 255));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(70, 70, 70, 255));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(90, 90, 90, 255));
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 4));
 
-        ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Use your UI font (e.g., FontAwesome with ICON_FA_SYNC)
-
-        if (ImGui::Button(ICON_FA_ROTATE)) {
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - 40);
+        ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
+        if (ImGui::Button(ICON_FA_ROTATE))
             m_ResourceManager.ReloadFolder();
-        }
-        
         ImGui::PopFont();
-        ImGui::PopStyleVar(2);
-        ImGui::PopStyleColor(3);
 
         ImGui::Separator();
     }
     ImGui::EndChild();
-
+    // Content
     ImGui::BeginChild("ProjectContent", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
     {
-        float padding = 20.0f;
+        static ResourceManager::ResourceEntry popupEntry;
         float thumbnailSize = 96.0f;
+        float padding = 20.0f;
         float cellSize = thumbnailSize + padding;
-        float panelWidth = ImGui::GetContentRegionAvail().x;
-        int columnCount = (int)(panelWidth / cellSize);
-        if (columnCount < 1) columnCount = 1;
-
+        int columnCount =  ImGui::GetContentRegionAvail().x / cellSize;
+        if (columnCount <= 0 ) columnCount = 1;
         ImGui::Columns(columnCount, 0, false);
-        std::string popupName;
 
-        const auto& files = m_ResourceManager.GetDirectory();
-        bool lockPopups = false;
-        for (const auto& entry : files) {
+        for (auto& entry : m_ResourceManager.GetDirectory()) {
             ImGui::PushID(entry.fullPath.c_str());
-
             const char* icon = (entry.type == ResourceManager::Dir) ? ICON_FA_FOLDER : ICON_FA_FILE;
 
             ImGui::BeginGroup();
-
-            float iconOffsetX = (cellSize - thumbnailSize) * 0.5f;
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + iconOffsetX);
-
-            // Button Style
-            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(60, 60, 60, 255));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(100, 100, 100, 255));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(120, 120, 120, 255));
-            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cellSize - thumbnailSize) * 0.5f);
             ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
-      
 
-            ImGui::Button(icon, ImVec2(thumbnailSize, thumbnailSize));
+            if (ImGui::Button(icon, ImVec2(thumbnailSize, thumbnailSize))) {
 
-            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-                if (entry.type == ResourceManager::Dir) {
-                    m_ResourceManager.LoadDirectory(entry.fullPath);
-                }
-                else {
-                    std::string extension = std::filesystem::path(entry.fullPath).extension().string();
-                    if (m_FunctionsByExtensions[extension])
-                        m_FunctionsByExtensions[extension](entry.fullPath);
-                    else
-                        system(entry.fullPath.c_str());
-                }
+
             }
-
-
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) { OpenFileEntry(entry); }
             if (entry.type == ResourceManager::File && ImGui::BeginDragDropSource()) {
                 ImGui::SetDragDropPayload("ASSET_FILE", entry.fullPath.c_str(), entry.fullPath.size() + 1);
                 ImGui::Text("Dragging: %s", entry.name.c_str());
                 ImGui::EndDragDropSource();
             }
-
-            ImGui::PopFont();
-            ImGui::PopStyleVar();
-            ImGui::PopStyleColor(3);
-            if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-                popupName  = entry.fullPath;
-                ImGui::OpenPopup(popupName.c_str());
-                IE_LOG(entry.fullPath);
-                lockPopups = true;
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                ImGui::CloseCurrentPopup();
+                popupEntry = entry;
+                ImGui::OpenPopup("AssetContextMenu");
             }
 
-            std::string name = entry.name;
-            float maxWidth = thumbnailSize + 10.0f;
-            float nameWidth = ImGui::CalcTextSize(name.c_str()).x;
+            ImGui::PopFont();
 
-            float textScale = 1.f;
-
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + iconOffsetX);
-            ImGui::SetWindowFontScale(textScale);
-            ImGui::TextWrapped(name.c_str());
-            ImGui::SetWindowFontScale(1.0f);
-
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cellSize - thumbnailSize) * 0.5f);
+            ImGui::TextWrapped(entry.name.c_str());
             ImGui::EndGroup();
-
             ImGui::NextColumn();
-            ImGui::PopID();
 
+            ImGui::PopID();
         }
 
-        if (ImGui::IsWindowHovered() && IsMouseButtonPressed(1) && !lockPopups) {
+        // Right-click on empty space
+        if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+            ImGui::CloseCurrentPopup();
             ImGui::OpenPopup("FolderViewPopup");
         }
 
+        // Folder view popup
         static bool openNewFilePopup = false;
+        static bool openNewFolderPopup = false;
+
         static char newFileName[256] = "NewFile.txt";
+        static char newFolderName[256] = "NewFolder";
 
         if (ImGui::BeginPopup("FolderViewPopup")) {
+            if (ImGui::Selectable("New File")) {
+                openNewFilePopup = true;
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Selectable("New Folder")) {
+                openNewFolderPopup = true;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+
+        // File context menu
+        if (!popupEntry.fullPath.empty() && popupEntry.type == ResourceManager::FileType::File)
+            ImGui::OpenPopup("AssetContextMenu");
+
+        if (ImGui::BeginPopup("AssetContextMenu")) {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 4));
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0)); // Transparent background
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.2f, 0.2f, 1));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.3f, 0.3f, 1));
-        
 
-            if (ImGui::Selectable("New File", false, ImGuiSelectableFlags_DontClosePopups)) {
-                openNewFilePopup = true;
-                ImGui::CloseCurrentPopup(); 
+            if (ImGui::Selectable("Open")) {
+                OpenFileEntry(popupEntry);
+                popupEntry.fullPath = "";
+                ImGui::CloseCurrentPopup();
+            }
+            else if (ImGui::Selectable("Delete")) {
+                // Delete file logic
+                popupEntry.fullPath = "";
+                ImGui::CloseCurrentPopup();
+            }
+            else if (ImGui::IsMouseClicked(1) &&
+                !ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)) {
+                popupEntry.fullPath = "";
+                ImGui::CloseCurrentPopup();
             }
 
-            if (ImGui::Selectable("New Folder", false, ImGuiSelectableFlags_DontClosePopups)) {
-                
-            }
 
-            if (ImGui::Selectable("Delete", false)) {
-            
-            }
-
-            // Open a modal popup
 
             ImGui::PopStyleColor(3);
             ImGui::PopStyleVar(2);
@@ -720,12 +856,19 @@ void ImGuiLayer::DrawProjectView() {
         }
 
 
-
         if (openNewFilePopup) {
             ImGui::OpenPopup("New File");
             openNewFilePopup = false;
         }
+        else if (openNewFolderPopup) {
+            ImGui::OpenPopup("New Folder");
+            openNewFolderPopup = false;
+        }
+        else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            ImGui::CloseCurrentPopup();
+        }
 
+       
         if (ImGui::BeginPopupModal("New File", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::Text("Enter file name:");
             ImGui::InputText("##NewFileName", newFileName, IM_ARRAYSIZE(newFileName));
@@ -735,9 +878,23 @@ void ImGuiLayer::DrawProjectView() {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
-            if (ImGui::Button("Cancel")) {
+            if (ImGui::Button("Cancel"))
+                ImGui::CloseCurrentPopup();
+
+            ImGui::EndPopup();
+        }
+
+        if (ImGui::BeginPopupModal("New Folder", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text("Enter folder name:");
+            ImGui::InputText("##NewFileName", newFolderName, IM_ARRAYSIZE(newFolderName));
+            ImGui::Spacing();   
+            if (ImGui::Button("Create")) {
+                m_ResourceManager.CreateDir(newFolderName);
                 ImGui::CloseCurrentPopup();
             }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel"))
+                ImGui::CloseCurrentPopup();
 
             ImGui::EndPopup();
         }
@@ -745,8 +902,6 @@ void ImGuiLayer::DrawProjectView() {
         ImGui::Columns(1);
     }
     ImGui::EndChild();
-
-
 
     ImGui::End();
 }
@@ -773,6 +928,66 @@ void ImGuiLayer::DrawProfiler() {
         }
 
         ImGui::EndTable();
+    }
+
+    ImGui::End();
+}
+
+
+void ImGuiLayer::DrawShaderController() {
+    ImGui::Begin("Scene Shaders");
+
+    if (ImGui::BeginDragDropTargetCustom(ImGui::GetCurrentWindow()->Rect(), ImGui::GetCurrentWindow()->ID)) {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_FILE")) {
+
+
+            const char* droppedPath = static_cast<const char*>(payload->Data);
+            std::filesystem::path path(droppedPath);
+
+            std::string filename = path.filename().string();
+
+            std::string extension = std::filesystem::path(droppedPath).extension().string();
+            std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+            if (extension == ".vs" || extension == ".vert") {
+
+
+                m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetShaderRegistry()->AddShader(filename,droppedPath,"");
+                IE_LOG("Dropped Vertex Shader: " << droppedPath);
+                // Your logic here
+            }
+            else if (extension == ".fs" || extension == ".frag") {
+                m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetShaderRegistry()->AddShader(filename,"", droppedPath);
+                IE_LOG("Dropped Fragment Shader: " << droppedPath);
+                // Your logic here
+            }
+            else {
+                IE_LOG_ERROR("Invalid shader extension: " << extension);
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+
+    for (auto& [name, shader] : *m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetShaderRegistry()->GetShaders()) {
+        bool isActive = shader.isActive;
+
+        if (isActive) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // Green
+        }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.2f, 0.2f, 1.0f)); // Red
+        }
+
+        std::string buttonLabel = (isActive ? "Deactivate##" : "Activate##") + name;
+
+        if (ImGui::Button(buttonLabel.c_str())) {
+            shader.isActive = !shader.isActive;
+        }
+
+        ImGui::PopStyleColor();
+        ImGui::SameLine();
+        ImGui::Text("%s", name.c_str());
     }
 
     ImGui::End();
@@ -826,106 +1041,6 @@ void ImGuiLayer::DrawLog()
 }
 
 
-void ImGuiLayer::DrawSceneSettings(){
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Once); // Set initial size
-    ImGui::Begin("Scene Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize); // Allow resize
-    static char rename_buffer[128] = "";
-    ImGui::Text("Scene Name:");
-    if (ImGui::InputText("##SceneName", rename_buffer, IM_ARRAYSIZE(rename_buffer),
-        ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
-        m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->SetName(rename_buffer);
-    }
-
-    ImGui::Separator();
-
-    // Camera Component List
-    IE::Scene* scene = m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene();
-    ImGui::Text("Camera Objects:");
-    ImGui::BeginChild("CameraList", ImVec2(0, 150), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
-
-    for (auto& [id, object] : scene->GetEntities()) {
-        if (object->GetComponent<IE::CameraComponent>() != nullptr) {
-            bool isCurrent = (scene->GetCurrentCamera() && scene->GetCurrentCamera()->GetID() == id);
-            std::string label = object->m_Name + " (ID: " + std::to_string(object->GetID()) + ") " + (isCurrent ? " (StartUp)" : "");
-
-            if (ImGui::Selectable(label.c_str(), isCurrent)) {
-                scene->SetCurrentCamera(object.get());
-            }
-        }
-    }
-
-    ImGui::EndChild();
-
-    // Escape key closes the popup
-    if (ImGui::IsKeyPressed(ImGuiKey_Escape))
-        ImGui::CloseCurrentPopup();
-    ImGui::End(); // Scene Settings
-}
 
 
-void ImGuiLayer::DrawObjectNode(IE::Object* object, int depth)
-{
-    if (!object) return;
 
-    if (depth > 1000)
-    {
-        ImGui::Text("Max depth exceeded!");
-        return;
-    }
-
-    ImGui::PushID(object->GetID());
-
-    ImGui::BeginGroup();
-    ImGui::Indent(depth * 20.0f);
-
-    bool isSelected = object->isSelected;
-    if (isSelected)
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.4f, 0.9f, 0.6f));
-
-    if (ImGui::Selectable((object->m_Name  +  " (ID:" + std::to_string(object->GetID()) + ")").c_str(), isSelected, 0, ImVec2(0, 24)))
-    {
-        m_Editor->ClearSelections();
-        m_Editor->Select(object);
-    }
-
-    if (isSelected)
-        ImGui::PopStyleColor();
-
-    if (ImGui::BeginDragDropSource())
-    {
-        IE::Object* ptr = object;
-        ImGui::SetDragDropPayload("OBJECT_HIERARCHY", &ptr, sizeof(IE::Object*));
-        ImGui::Text("Dragging %s", object->m_Name.c_str());
-        ImGui::EndDragDropSource();
-    }
-
-    // Accept drop
-    if (ImGui::BeginDragDropTarget())
-    {
-        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("OBJECT_HIERARCHY"))
-        {
-            IE::Object* dropped = *(IE::Object**)payload->Data;
-
-            if (dropped && dropped != object && dropped->GetParent() != object)
-            {
-                dropped->SetParent(object); 
-            }
-        }
-
-        ImGui::EndDragDropTarget();
-    }
-
-    ImGui::Unindent(depth * 20.0f);
-    ImGui::EndGroup();
-
-    // Recursively draw children
-    for (auto& child : object->GetChildren())
-    {
-        if (child) // null check
-            DrawObjectNode(child, depth + 1);
-    }
-
-    ImGui::PopID();
-}
-
-#pragma endregion

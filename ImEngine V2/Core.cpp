@@ -88,5 +88,4 @@ void Core::Initialize(int argc, char* argv[]) {
 
 void Core::Shutdown(){
     WriteProjectFile();
-
 }

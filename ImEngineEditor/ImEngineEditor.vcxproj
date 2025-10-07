@@ -163,6 +163,7 @@
     <ClInclude Include="ProjectManager.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Runtime.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ImEngineEditor.rc" />

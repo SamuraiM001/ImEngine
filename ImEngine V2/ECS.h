@@ -23,6 +23,7 @@ namespace IE {
         virtual void Update() {}
         virtual void EditorUpdate() {}
         virtual void Render() {}
+        virtual void RenderSelection() {};
         virtual void GuiRender() {};
 
         virtual void Serialize(std::ostream& out) {}
@@ -79,6 +80,7 @@ namespace IE {
         Object* GetParent() { return m_Parent; }
 
         void Render();
+        void RenderSelection();
 
         Texture2D* GetBillboardTexture() { return &m_BillboardText; };
    
@@ -88,9 +90,6 @@ namespace IE {
 
 
         uint32_t GetID() const { return m_ID; }
-        bool isSelected = false;
-        void Select() { isSelected = true; }
-        void UnSelect() { isSelected = false; }
         std::vector<Object*>& GetChildren() { return m_Children; };
 
     public:

@@ -125,9 +125,6 @@
     <ClCompile Include="Render.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="App.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentRegistry.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
