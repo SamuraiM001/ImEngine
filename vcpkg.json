@@ -1,0 +1,9 @@
+{
+  "name": "imengine",
+  "version-string": "1.0.0",
+  "builtin-baseline": "5f27e44d93e4b2f9f11b7e96b8899aef540e5c8f",
+  "dependencies": [
+    "nlohmann-json",
+    "curl"
+  ]
+}

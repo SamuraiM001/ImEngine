@@ -1,13 +1,12 @@
-﻿
-#include "Editor.h"
+﻿#include "Editor.h"
 #include "ConsoleLog.h"
 #include "ImEngine.h"
 #include "Profiler.h"
 #include "Constants.h"
 #include <filesystem>
+#include <imgui/imgui_internal.h>
 #include <windows.h>
 #include <shellapi.h>  
-#include <imgui/imgui_internal.h>
 
 #pragma region ImGui Setup
 
@@ -127,9 +126,13 @@ void ImGuiLayer::OnAttach() {
         );
     };
     
-    m_Windows.push_back(std::make_unique<w_Viewport>(this));
-    m_Windows.push_back(std::make_unique<w_Hierarchy>(this));
-    m_Windows.push_back(std::make_unique<w_Plugins>(this));
+    m_Windows.push_back(std::make_unique<w_Viewport>(this,true));
+    m_Windows.push_back(std::make_unique<w_Hierarchy>(this, true));
+    m_Windows.push_back(std::make_unique<w_Plugins>(this,false));
+    m_Windows.push_back(std::make_unique<w_Properties>(this, true));
+    m_Windows.push_back(std::make_unique<w_ProjectView>(this, true));
+    m_Windows.push_back(std::make_unique<w_Profiler>(this, true));
+    m_Windows.push_back(std::make_unique<w_Log>(this, true));
     m_ResourceManager.LoadDirectory(IE::Core::m_WorkFolder);
 }
 
@@ -174,8 +177,6 @@ void ImGuiLayer::HandleBasicInput() {
             m_Editor->ClearSelections();
             m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->DestroyEntity(x->GetID());
         }
-        else {
-        }
 
     }
 }
@@ -194,11 +195,6 @@ void ImGuiLayer::OnRender() {
         if(gWn->GetActivity())gWn->OnDraw();
     }
 
-    DrawProjectView();
-    DrawProfiler();
-    DrawLog();
-    DrawProperities();
-    DrawShaderController();
 
      
 
@@ -239,10 +235,10 @@ void ImGuiLayer::DrawMainMenuBar() {
         }
 
         if (ImGui::BeginMenu("Plugins")) {
-            if (ImGui::MenuItem("Manage")) {
-
+            if (ImGui::MenuItem("Browse")) {
+                GetWindow<w_Plugins>()->Activate();
             }
-            if (ImGui::MenuItem("Reload")) {
+            if (ImGui::MenuItem("Manage")) {
 
             }
             ImGui::EndMenu();
@@ -255,7 +251,7 @@ void ImGuiLayer::DrawMainMenuBar() {
 
             }
             if (ImGui::MenuItem("Settings")) {
-            
+
             }
             ImGui::EndMenu();
         }
@@ -263,7 +259,6 @@ void ImGuiLayer::DrawMainMenuBar() {
     }
     ImGui::EndMainMenuBar();
 }
-
 
 void ImGuiLayer::DrawMainDockspace() {
     ImGuiIO& io = ImGui::GetIO();
@@ -361,7 +356,7 @@ void w_Viewport::OnDraw() {
 
 
 
-    if (IsMouseButtonReleased(MOUSE_RIGHT_BUTTON)) {
+    if (IsMouseButtonReleased(MOUSE_RIGHT_BUTTON) && isMouseLocked) {
         EnableCursor();
         ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
         isMouseLocked = false;
@@ -567,27 +562,50 @@ void w_Hierarchy::DrawObjectNode(IE::Object* object, int depth)
 
 #pragma region Plugins
 
-void w_Plugins::OnDraw(){
-    ImGui::Begin("Plugins",0);
-    //Part where we fetch the plugins, and then we read them from file and check them
+void w_Plugins::Activate() {
+    Window::Activate();
+    ConnectionManager::FetchPluginsAsync("http://localhost:8000/plugins", isLoading, m_Plugins);
+}
 
-    for (int i = 0; i < 10; i++) {//This will be changed to count of fetched plugins
-        ImGui::CollapsingHeader("Name of the plugin will be here soon");
+void w_Plugins::OnDraw() {
+    ImGui::Begin("Plugins", &isActive);
+
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
+    if (ImGui::Button(ICON_FA_ROTATE)){
+        ConnectionManager::FetchPluginsAsync("http://localhost:8000/plugins",isLoading,m_Plugins);
     }
+    ImGui::PopFont();
 
+    if (isLoading) {
+        ImGui::Text("Fetching plugin data...");
+    }
+    else if (m_Plugins.empty()) {
+        ImGui::Text("No plugins fetched yet.");
+    }
+    else {
+        for (auto& plugin : m_Plugins) {
+            if (ImGui::CollapsingHeader(plugin.name.c_str())) {
+                ImGui::TextWrapped("Description: %s", plugin.description.c_str());
+                ImGui::Text("Version: %s", plugin.version.c_str());
+                if (ImGui::Button(("Install##" + plugin.name).c_str()))
+                    IE_LOG("Started Installation of plugin: " << plugin.name);
+            }
+        }
+    }
 
     ImGui::End();
 }
 
 #pragma endregion
 
+#pragma region Properities
 
-void ImGuiLayer::DrawProperities() {
+void w_Properties::OnDraw() {
     ImGui::SetNextWindowSize(ImVec2(300, 500));
     ImGui::Begin("Properties");
     ImGui::Dummy({ 5,5 });
-    if (!m_Editor->GetSelectedObject().empty()) {
-        IE::Object* obj = m_Editor->GetSelectedObject()[0];
+    if (!m_Layer->m_Editor->GetSelectedObject().empty()) {
+        IE::Object* obj = m_Layer->m_Editor->GetSelectedObject()[0];
         if (obj) {
             ImGui::Indent(5);
             ImGui::Text(((std::string)"( ID: " + std::to_string(obj->GetID()) + " )" ).c_str());
@@ -728,8 +746,11 @@ void ImGuiLayer::DrawProperities() {
     ImGui::End();
 }
 
+#pragma endregion
 
-void ImGuiLayer::DrawProjectView() {
+#pragma region Project View
+
+void w_ProjectView::OnDraw() {
     ImGui::Begin("Project");
 
     // Header
@@ -737,15 +758,15 @@ void ImGuiLayer::DrawProjectView() {
     {
         ImGui::Separator();
         if (ImGui::Button("< Back"))
-            m_ResourceManager.GoBack();
+            m_Layer->GetResourceManager()->GoBack();
 
         ImGui::SameLine();
-        ImGui::TextUnformatted(m_ResourceManager.GetCurrentPath().c_str());
+        ImGui::TextUnformatted(m_Layer->GetResourceManager()->GetCurrentPath().c_str());
 
         ImGui::SameLine(ImGui::GetContentRegionAvail().x - 40);
         ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
         if (ImGui::Button(ICON_FA_ROTATE))
-            m_ResourceManager.ReloadFolder();
+            m_Layer->GetResourceManager()->ReloadFolder();
         ImGui::PopFont();
 
         ImGui::Separator();
@@ -758,11 +779,11 @@ void ImGuiLayer::DrawProjectView() {
         float thumbnailSize = 96.0f;
         float padding = 20.0f;
         float cellSize = thumbnailSize + padding;
-        int columnCount =  ImGui::GetContentRegionAvail().x / cellSize;
+        float columnCount =  ImGui::GetContentRegionAvail().x / cellSize;
         if (columnCount <= 0 ) columnCount = 1;
         ImGui::Columns(columnCount, 0, false);
 
-        for (auto& entry : m_ResourceManager.GetDirectory()) {
+        for (auto& entry : m_Layer->GetResourceManager()->GetDirectory()) {
             ImGui::PushID(entry.fullPath.c_str());
             const char* icon = (entry.type == ResourceManager::Dir) ? ICON_FA_FOLDER : ICON_FA_FILE;
 
@@ -774,7 +795,7 @@ void ImGuiLayer::DrawProjectView() {
 
 
             }
-            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) { OpenFileEntry(entry); }
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) { m_Layer->OpenFileEntry(entry); }
             if (entry.type == ResourceManager::File && ImGui::BeginDragDropSource()) {
                 ImGui::SetDragDropPayload("ASSET_FILE", entry.fullPath.c_str(), entry.fullPath.size() + 1);
                 ImGui::Text("Dragging: %s", entry.name.c_str());
@@ -833,7 +854,7 @@ void ImGuiLayer::DrawProjectView() {
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.3f, 0.3f, 1));
 
             if (ImGui::Selectable("Open")) {
-                OpenFileEntry(popupEntry);
+                m_Layer->OpenFileEntry(popupEntry);
                 popupEntry.fullPath = "";
                 ImGui::CloseCurrentPopup();
             }
@@ -874,7 +895,7 @@ void ImGuiLayer::DrawProjectView() {
             ImGui::InputText("##NewFileName", newFileName, IM_ARRAYSIZE(newFileName));
             ImGui::Spacing();
             if (ImGui::Button("Create")) {
-                m_ResourceManager.CreateAsset(newFileName);
+                m_Layer->GetResourceManager()->CreateAsset(newFileName);
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
@@ -889,7 +910,7 @@ void ImGuiLayer::DrawProjectView() {
             ImGui::InputText("##NewFileName", newFolderName, IM_ARRAYSIZE(newFolderName));
             ImGui::Spacing();   
             if (ImGui::Button("Create")) {
-                m_ResourceManager.CreateDir(newFolderName);
+                m_Layer->GetResourceManager()->CreateDir(newFolderName);
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
@@ -906,8 +927,11 @@ void ImGuiLayer::DrawProjectView() {
     ImGui::End();
 }
 
+#pragma endregion
 
-void ImGuiLayer::DrawProfiler() {
+#pragma region Profiler 
+
+void w_Profiler::OnDraw() {
     ImGui::Begin("Profiler");
 
     const auto& timings = Profiler::Get().GetTimings();
@@ -933,13 +957,15 @@ void ImGuiLayer::DrawProfiler() {
     ImGui::End();
 }
 
+#pragma endregion
 
-void ImGuiLayer::DrawShaderController() {
+#pragma region Shader Controller
+
+void w_ShaderController::OnDraw() {
     ImGui::Begin("Scene Shaders");
 
     if (ImGui::BeginDragDropTargetCustom(ImGui::GetCurrentWindow()->Rect(), ImGui::GetCurrentWindow()->ID)) {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_FILE")) {
-
 
             const char* droppedPath = static_cast<const char*>(payload->Data);
             std::filesystem::path path(droppedPath);
@@ -952,12 +978,12 @@ void ImGuiLayer::DrawShaderController() {
             if (extension == ".vs" || extension == ".vert") {
 
 
-                m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetShaderRegistry()->AddShader(filename,droppedPath,"");
+                m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetShaderRegistry()->AddShader(filename,droppedPath,"");
                 IE_LOG("Dropped Vertex Shader: " << droppedPath);
                 // Your logic here
             }
             else if (extension == ".fs" || extension == ".frag") {
-                m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetShaderRegistry()->AddShader(filename,"", droppedPath);
+                m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetShaderRegistry()->AddShader(filename,"", droppedPath);
                 IE_LOG("Dropped Fragment Shader: " << droppedPath);
                 // Your logic here
             }
@@ -969,7 +995,7 @@ void ImGuiLayer::DrawShaderController() {
     }
 
 
-    for (auto& [name, shader] : *m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetShaderRegistry()->GetShaders()) {
+    for (auto& [name, shader] : *m_Layer->m_Editor->GetRenderStack()->GetLayer<GameLayer>()->GetScene()->GetShaderRegistry()->GetShaders()) {
         bool isActive = shader.isActive;
 
         if (isActive) {
@@ -993,8 +1019,11 @@ void ImGuiLayer::DrawShaderController() {
     ImGui::End();
 }
 
+#pragma endregion
 
-void ImGuiLayer::DrawLog()
+#pragma region Log
+
+void w_Log::OnDraw()
 {
     ImGui::Begin("Developer Console");
 
@@ -1040,7 +1069,4 @@ void ImGuiLayer::DrawLog()
     ImGui::End();
 }
 
-
-
-
-
+#pragma endregion

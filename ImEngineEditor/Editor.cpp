@@ -19,6 +19,7 @@ void Editor::Initialize(int argc, char* argv[]) {
     //Initializing Core
     m_Core.Initialize(argc, argv);
 
+
     //Initializing Window
     SetTargetFPS(200);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT );  
@@ -58,6 +59,7 @@ void Editor::Shutdown() {
     m_Core.Shutdown();
 
     m_rStack.Free();
+
 
     CloseWindow();
 }

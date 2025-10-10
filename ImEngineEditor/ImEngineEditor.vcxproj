@@ -76,7 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;C:\Users\User\source\repos\ImEngine V2\ImEngineEditor\nfd\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;C:\Users\User\source\repos\ImEngine V2\ImEngineEditor\nfd\src\include;%(AdditionalIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -124,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\User\source\repos\ImEngine V2\ImEngineRuntime;C:\Users\User\source\repos\ImEngine V2\ImEngine V2\include;C:\Users\User\source\repos\ImEngine V2\ImEngine V2;;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ConnectionManager.cpp" />
     <ClCompile Include="ConsoleLog.cpp" />
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="ImGUILayer.cpp" />
@@ -157,9 +158,29 @@
     <None Include="resources\shaders\main.vs" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConnectionManager.h" />
     <ClInclude Include="ConsoleLog.h" />
     <ClInclude Include="Constants.h" />
+    <ClInclude Include="curl\brotli\decode.h" />
+    <ClInclude Include="curl\brotli\encode.h" />
+    <ClInclude Include="curl\brotli\port.h" />
+    <ClInclude Include="curl\brotli\shared_dictionary.h" />
+    <ClInclude Include="curl\brotli\types.h" />
+    <ClInclude Include="curl\curl\curlver.h" />
+    <ClInclude Include="curl\curl\easy.h" />
+    <ClInclude Include="curl\curl\header.h" />
+    <ClInclude Include="curl\curl\mprintf.h" />
+    <ClInclude Include="curl\curl\multi.h" />
+    <ClInclude Include="curl\curl\options.h" />
+    <ClInclude Include="curl\curl\stdcheaders.h" />
+    <ClInclude Include="curl\curl\system.h" />
+    <ClInclude Include="curl\curl\typecheck-gcc.h" />
+    <ClInclude Include="curl\curl\urlapi.h" />
+    <ClInclude Include="curl\curl\websockets.h" />
     <ClInclude Include="Editor.h" />
+    <ClInclude Include="curl\curl\curl.h" />
+    <ClInclude Include="nlohmann\json.hpp" />
+    <ClInclude Include="nlohmann\json_fwd.hpp" />
     <ClInclude Include="ProjectManager.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Runtime.h" />
@@ -171,16 +192,34 @@
   <ItemGroup>
     <Image Include="textures\Logo.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Library Include="curl\lib\libbrotlicommon.a" />
+    <Library Include="curl\lib\libbrotlidec.a" />
+    <Library Include="curl\lib\libcrypto.a" />
+    <Library Include="curl\lib\libcurl.a" />
+    <Library Include="curl\lib\libcurl.dll.a" />
+    <Library Include="curl\lib\libnghttp2.a" />
+    <Library Include="curl\lib\libnghttp3.a" />
+    <Library Include="curl\lib\libngtcp2.a" />
+    <Library Include="curl\lib\libngtcp2_crypto_libressl.a" />
+    <Library Include="curl\lib\libpsl.a" />
+    <Library Include="curl\lib\libssh2.a" />
+    <Library Include="curl\lib\libssl.a" />
+    <Library Include="curl\lib\libz.a" />
+    <Library Include="curl\lib\libzstd.a" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\raylib.5.5.0\build\native\raylib.targets" Condition="Exists('..\packages\raylib.5.5.0\build\native\raylib.targets')" />
-    <Import Project="..\packages\lua.5.4.7.2\build\native\Lua.targets" Condition="Exists('..\packages\lua.5.4.7.2\build\native\Lua.targets')" />
+    <Import Project="..\packages\lua.5.4.8\build\native\Lua.targets" Condition="Exists('..\packages\lua.5.4.8\build\native\Lua.targets')" />
+    <Import Project="..\packages\libcurl.NET.x64.1.4.1.0\build\libcurl.NET.x64.targets" Condition="Exists('..\packages\libcurl.NET.x64.1.4.1.0\build\libcurl.NET.x64.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\raylib.5.5.0\build\native\raylib.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\raylib.5.5.0\build\native\raylib.targets'))" />
-    <Error Condition="!Exists('..\packages\lua.5.4.7.2\build\native\Lua.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\lua.5.4.7.2\build\native\Lua.targets'))" />
+    <Error Condition="!Exists('..\packages\lua.5.4.8\build\native\Lua.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\lua.5.4.8\build\native\Lua.targets'))" />
+    <Error Condition="!Exists('..\packages\libcurl.NET.x64.1.4.1.0\build\libcurl.NET.x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\libcurl.NET.x64.1.4.1.0\build\libcurl.NET.x64.targets'))" />
   </Target>
 </Project>

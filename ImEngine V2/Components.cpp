@@ -5,7 +5,6 @@
 using namespace IE;
 
 
-
 #pragma region Transform C
 Vector3 TransformComponent::GetForwardVector() {
     Matrix rotationMatrix = MatrixRotateXYZ(m_Rotation);

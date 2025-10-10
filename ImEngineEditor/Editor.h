@@ -18,23 +18,32 @@ public:
         IE_ASSERT(editor != nullptr, "Editor pointer cannot be null!");
     }
     std::vector<std::unique_ptr<Window>> m_Windows;
+
+    template<typename T>
+    T* GetWindow() {
+        static_assert(std::is_base_of_v<Window, T>, "T must derive from Window");
+        for (auto& win : m_Windows) {
+            if (auto casted = dynamic_cast<T*>(win.get())) {
+                return casted;
+            }
+        }
+        return nullptr;
+    }
     static void SetupImGuiStyle();
     void DrawMainMenuBar();
     void DrawMainDockspace();
 
-    void DrawPlugins();
-    void DrawProperities();
-    void DrawProjectView();
-    void DrawProfiler();
-    void DrawShaderController();
-    void DrawLog();
+
 
 public:
 
     void OpenFileEntry(ResourceManager::ResourceEntry rE);
 
 public:
+
     void HandleBasicInput();
+
+
 public:
     void OnRender() override;
     void OnAttach() override;
@@ -44,6 +53,7 @@ public:
 
 
     Editor* m_Editor; 
+    ResourceManager* GetResourceManager() { return &m_ResourceManager; }
 protected:    
 
     ResourceManager m_ResourceManager;

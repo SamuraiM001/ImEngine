@@ -39,6 +39,9 @@
     <ClCompile Include="ProjectManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ConnectionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -48,6 +51,8 @@
     <None Include="resources\shaders\main.vs">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="$(MSBuildThisFileDirectory)\libcurl.dll" />
+    <None Include="$(MSBuildThisFileDirectory)\LibCurlShim.dll" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h">
@@ -71,6 +76,66 @@
     <ClInclude Include="Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ConnectionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nlohmann\json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\curl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nlohmann\json_fwd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\curlver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\easy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\mprintf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\multi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\options.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\stdcheaders.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\typecheck-gcc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\urlapi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\curl\websockets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\brotli\decode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\brotli\encode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\brotli\port.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\brotli\shared_dictionary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curl\brotli\types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ImEngineEditor.rc">
@@ -81,5 +146,21 @@
     <Image Include="textures\Logo.png">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="curl\lib\libbrotlicommon.a" />
+    <Library Include="curl\lib\libbrotlidec.a" />
+    <Library Include="curl\lib\libcrypto.a" />
+    <Library Include="curl\lib\libcurl.a" />
+    <Library Include="curl\lib\libcurl.dll.a" />
+    <Library Include="curl\lib\libnghttp2.a" />
+    <Library Include="curl\lib\libnghttp3.a" />
+    <Library Include="curl\lib\libngtcp2.a" />
+    <Library Include="curl\lib\libngtcp2_crypto_libressl.a" />
+    <Library Include="curl\lib\libpsl.a" />
+    <Library Include="curl\lib\libssh2.a" />
+    <Library Include="curl\lib\libssl.a" />
+    <Library Include="curl\lib\libz.a" />
+    <Library Include="curl\lib\libzstd.a" />
   </ItemGroup>
 </Project>
